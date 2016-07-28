@@ -29,6 +29,7 @@ public class verifyUserIsAbleToLogin {
 		String email="qatest270@gmail.com";
 		String password="test123";
 		
+		//create class objects
 		HomePage home=new HomePage(oASelFW);
 		
 		try{
