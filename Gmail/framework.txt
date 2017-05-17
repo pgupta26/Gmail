@@ -1,0 +1,89 @@
+SeleneseTestBase
+
+
+public void reportStepDetails(String ver, String des, String stepStatus)
+  {
+    verification.add(ver);
+    description.add(des);
+    status.add(stepStatus);
+    dateTime.add(getExecutionTime());
+    if (stepStatus.equalsIgnoreCase("Fail"))
+      sResultFlag = stepStatus;
+    iStepCount += 1;
+  }
+
+
+
+ public void reportStepDtlsWithScreenshot(String ver, String des, String stepStatus)
+  {
+    captureScreenShot();
+    verification.add(ver);
+    
+    description.add(des + "Screenshot:" + sECName + "_" + iStepCount + ".png");
+    
+    System.out.println("Report step details method path:" + des + "Screenshot:" + sAutomationPath + "Results" + File.separator + "Screenshots" + 
+      File.separator + sECName + "_" + getCurrentDateNTime() + "_" + 
+      iStepCount + ".png");
+    status.add(stepStatus);
+    dateTime.add(getExecutionTime());
+    if (stepStatus.equalsIgnoreCase("Fail")) {
+      sResultFlag = stepStatus;
+      fail("command:" + ver + "||" + "description:" + des + "||" + stepStatus);
+    }
+    iStepCount += 1;
+  }
+
+
+
+
+public String captureScreenShot()
+  {
+    String screenShotFilePath = null;
+    try
+    {
+      File scrFile = null;
+      
+      if (sauceUser.equalsIgnoreCase("Local")) {
+        scrFile = (File)((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
+      }
+      else {
+        scrFile = (File)((TakesScreenshot)new Augmenter().augment(driver)).getScreenshotAs(OutputType.FILE);
+      }
+      
+
+
+
+      String screenShotPah = sAutomationPath + "Results" + File.separator + sProjectName + File.separator + instanceName + File.separator + currentUser + File.separator + getDate1() + File.separator + sModuleName + File.separator + testSetName + File.separator;
+      
+      File fi = new File(screenShotPah);
+      if (!fi.exists()) {
+        fi.mkdirs();
+      }
+      System.out.println("Screenshot path" + screenShotPah + sECName + "_" + iStepCount + ".png");
+      FileUtils.copyFile(scrFile, new File(screenShotPah + sECName + "_" + iStepCount + ".png"));
+      FileUtils.copyFileToDirectory(new File(screenShotPah + sECName + "_" + iStepCount + ".png"), new File(getTempPath() + "CurrentRunReports" + File.separator));
+      screenShotFilePath = "Screenshot:" + sECName + "_" + iStepCount + ".png";
+
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
+    return screenShotFilePath;
+  }
+
+
+
+ public String getTempPath() {
+    try { 
+      String cananicalpath = File.createTempFile("temp_file", "tmp").getCanonicalPath();
+      int s = cananicalpath.lastIndexOf("\\");
+      return cananicalpath.substring(0, s + 1);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+
