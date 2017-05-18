@@ -1,89 +1,294 @@
-SeleneseTestBase
-
-
-public void reportStepDetails(String ver, String des, String stepStatus)
+public static String getDateTimeDifference(Date startDate, Date endDate)
   {
-    verification.add(ver);
-    description.add(des);
-    status.add(stepStatus);
-    dateTime.add(getExecutionTime());
-    if (stepStatus.equalsIgnoreCase("Fail"))
-      sResultFlag = stepStatus;
-    iStepCount += 1;
-  }
+    String time = "";
+    try {
+      System.out.println("startDate:" + startDate + " endDate:" + endDate);
+      long diff = endDate.getTime() - startDate.getTime();
+      long diffSeconds = diff / 1000L % 60L;
+      long diffMinutes = diff / 60000L % 60L;
+      long diffHours = diff / 3600000L % 24L;
+      
 
 
-
- public void reportStepDtlsWithScreenshot(String ver, String des, String stepStatus)
-  {
-    captureScreenShot();
-    verification.add(ver);
-    
-    description.add(des + "Screenshot:" + sECName + "_" + iStepCount + ".png");
-    
-    System.out.println("Report step details method path:" + des + "Screenshot:" + sAutomationPath + "Results" + File.separator + "Screenshots" + 
-      File.separator + sECName + "_" + getCurrentDateNTime() + "_" + 
-      iStepCount + ".png");
-    status.add(stepStatus);
-    dateTime.add(getExecutionTime());
-    if (stepStatus.equalsIgnoreCase("Fail")) {
-      sResultFlag = stepStatus;
-      fail("command:" + ver + "||" + "description:" + des + "||" + stepStatus);
+      if (diffHours < 10L) {
+        time = time + "0" + diffHours + ":";
+      } else {
+        time = time + diffHours + ":";
+      }
+      if (diffMinutes < 10L) {
+        time = time + "0" + diffMinutes + ":";
+      } else {
+        time = time + diffMinutes + ":";
+      }
+      if (diffSeconds < 10L) {
+        time = time + "0" + diffSeconds;
+      } else {
+        time = time + diffSeconds;
+      }
     }
-    iStepCount += 1;
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    
+    return time;
+  }
+  
+  
+  public void stopSeleniumRunningLocally()
+    throws Exception
+  {
+    String jobID = null;
+    try {
+      if (driver != null) {
+        if (sBrowser.equalsIgnoreCase("HtmlUnitDriver")) {
+          jobID = Double.toString(Math.random() * 9.9999999E7D);
+
+        }
+        else if (sBrowser.contains("Safari")) {
+          try {
+            WebDriverWait safariWait = new WebDriverWait(driver, 80L);
+            JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
+            safariWait.equals(Boolean.valueOf(safariWaitJavaScript.executeScript("return document.readyState", new Object[0]).equals("complete")));
+            jobID = ((RemoteWebDriver)driver).getSessionId().toString();
+            System.out.println("jobid=" + jobID);
+            if (!jobID.equals(null)) break label222;
+            jobID = Double.toString(Math.random() * 9.9999999E7D);
+          }
+          catch (Exception e)
+          {
+            jobID = Double.toString(Math.random() * 9.9999999E7D);
+          }
+        }
+        else {
+          jobID = ((RemoteWebDriver)driver).getSessionId().toString();
+          System.out.println("jobid=" + jobID);
+        }
+        
+
+      }
+      else
+      {
+        System.out.println("***driver object is null while type casting from webdrier to remotewebdrier for jobid****"); 
+        
+      }
+      
+      String[] values_sauce = { executionTime, currentUser, instanceName, moduleName, testSetName, testCaseName, sauceUser, os, jobID, sResultFlag };
+      setSauceLabValues(values_sauce);
+      String sInsertTestSetResults = "Insert into TestSetResults(ExecutionDate,Username,Execution_Environment,ModuleName,TestSetName,TestCaseName,SauceLabAccountName,OS,BrowserName,SessionID,Status) values ('" + executionTime + "','" + currentUser + "','" + instanceName + "','" + moduleName + "','" + testSetName + "','" + testCaseName + "','" + sauceUser + "','" + os + "','" + sBrowser + "','" + jobID + "','" + sResultFlag + "');";
+      
+
+      driver.quit();
+      killIEAndChromeDrivers();
+
+
+
+
+
+
+    }
+    catch (Exception e)
+    {
+
+
+
+
+
+      e.printStackTrace();
+    }
+    finally {
+      System.out.println("entered into finally");
+      if (sResultFlag.toLowerCase().equalsIgnoreCase("fail")) {
+        System.out.println("entered into finally if");
+        fail("Fail");
+      }
+    }
   }
 
-
-
-
-public String captureScreenShot()
+ public void setSauceLabValues(String[] sauceValues)
   {
-    String screenShotFilePath = null;
+    sauce_Values = sauceValues;
+    instanceName = sauce_Values[2];
+    endTime = new Date();
+    String timeDiff = getDateTimeDifference(startTime, endTime);
+    reportStepDetails("Execution Time:(HH:MM:SS) ", "Time taken for Execution is :" + timeDiff, "Pass");
+    resultXMLFileCreation();
+  }
+ 
+ 
+ 
+ public void resultXMLFileCreation()
+  {
+    initializeProperties();
+    
+    BufferedReader reader = null;
+    Writer output = null;
+    Writer output1 = null;
+    
+
+
     try
     {
-      File scrFile = null;
+      String sExecuteID = sauce_Values[8];
+      String sInstanceName = sauce_Values[2];
+      String sTestCaseName = sECName;
+      duration = getTime(startTime, endTime);
+      timeDiff = getDateTimeDifference(startTime, endTime);
       
-      if (sauceUser.equalsIgnoreCase("Local")) {
-        scrFile = (File)((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
+
+      String username = System.getProperty("user.name");
+      
+
+      String xmlstring = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><?xml-stylesheet type=\"text/xsl\" href=\"" + 
+      
+
+
+        sAutomationPath + "Results" + File.separator + "Results.xsl" + 
+        '"' + "?>";
+      String newline = System.getProperty("line.separator");
+      reader = new BufferedReader(new InputStreamReader(System.in));
+      xmlstring = xmlstring + newline + addspace(2) + "<TestCase>" + 
+        newline + addspace(4) + "<Details>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<ProjectName>" + 
+        sProjectName + "</ProjectName>" + newline;
+      xmlstring = xmlstring + addspace(4) + 
+        "<Environment>" + os + "-" + sBrowser + File.separator + sInstanceName + "</Environment>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<TestCaseName>" + sTestCaseName + "</TestCaseName>" + 
+        newline;
+      xmlstring = xmlstring + addspace(4) + "<User>" + username + 
+        "</User>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<Date>" + 
+        now("yyyy.MM.dd  'at' hh:mm:ss ") + "</Date>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<RunId>" + sExecuteID + 
+        "</RunId>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<Result>" + sResultFlag + 
+        "</Result>" + newline;
+      xmlstring = xmlstring + addspace(4) + "</Details>" + newline + 
+        newline;
+      xmlstring = xmlstring + addspace(4) + "<Steps>" + newline;
+      int vSize = verification.size();
+      
+      if (vSize < 0) {
+        reportStepDetails("No Selenium code \"", 
+          "Please Contact Functional/Automation team :  ", "Fail");
       }
-      else {
-        scrFile = (File)((TakesScreenshot)new Augmenter().augment(driver)).getScreenshotAs(OutputType.FILE);
+      for (int i1 = 0; i1 < verification.size(); i1++) {
+        xmlstring = xmlstring + addspace(6) + "<Step>" + newline;
+        xmlstring = xmlstring + addspace(8) + "<StepNumber>" + (i1 + 1) + 
+          "</StepNumber>" + newline;
+        xmlstring = xmlstring + addspace(8) + "<Verification>" + 
+          (String)verification.get(i1) + "</Verification>" + newline;
+        String sDescriptioncontent = (String)description.get(i1);
+        if (sDescriptioncontent.contains("Screenshot:")) {
+          xmlstring = 
+          
+
+
+
+            xmlstring + addspace(8) + "<Description>" + sDescriptioncontent.substring(0, sDescriptioncontent.indexOf("Screenshot:")) + "</Description>" + newline;
+          xmlstring = xmlstring + 
+            addspace(8) + 
+            "<Screenshot>" + 
+            sDescriptioncontent.substring(sDescriptioncontent
+            .indexOf("Screenshot:") + 11) + 
+            "</Screenshot>" + newline;
+        } else {
+          xmlstring = 
+            xmlstring + addspace(8) + "<Description>" + (String)description.get(i1) + "</Description>" + newline; }
+        xmlstring = 
+          xmlstring + addspace(8) + "<Status>" + (String)status.get(i1) + "</Status>" + newline;
+        xmlstring = xmlstring + addspace(8) + "<DateTime>" + 
+          (String)dateTime.get(i1) + "</DateTime>" + newline;
+        xmlstring = xmlstring + addspace(6) + "</Step>" + newline;
+      }
+      xmlstring = xmlstring + addspace(4) + "</Steps>" + newline;
+      xmlstring = xmlstring + addspace(2) + "</TestCase>" + newline;
+      
+
+      File dir = new File(sResultsFolderPath);
+      if (!dir.exists()) {
+        dir.mkdirs();
       }
       
 
 
-
-      String screenShotPah = sAutomationPath + "Results" + File.separator + sProjectName + File.separator + instanceName + File.separator + currentUser + File.separator + getDate1() + File.separator + sModuleName + File.separator + testSetName + File.separator;
+      String resultHtml = sResultFilePath;
+      String tempXml = getTempPath() + sECName + ".xml";
+      System.out.println("**tempXml**" + tempXml);
       
-      File fi = new File(screenShotPah);
-      if (!fi.exists()) {
-        fi.mkdirs();
+
+      File xmlfile = new File(tempXml);
+      
+      output1 = new BufferedWriter(new FileWriter(xmlfile));
+      output1.write(xmlstring);
+      
+      output1.close();
+      generateHtml(tempXml, resultHtml);
+      
+      File reportFile = new File(getTempPath() + "CurrentRunReports");
+      if (!reportFile.exists()) {
+        reportFile.mkdir();
       }
-      System.out.println("Screenshot path" + screenShotPah + sECName + "_" + iStepCount + ".png");
-      FileUtils.copyFile(scrFile, new File(screenShotPah + sECName + "_" + iStepCount + ".png"));
-      FileUtils.copyFileToDirectory(new File(screenShotPah + sECName + "_" + iStepCount + ".png"), new File(getTempPath() + "CurrentRunReports" + File.separator));
-      screenShotFilePath = "Screenshot:" + sECName + "_" + iStepCount + ".png";
+      generateHtml(tempXml, getTempPath() + "CurrentRunReports" + File.separator + sECName + ".html");
 
     }
     catch (Exception e)
     {
       e.printStackTrace();
     }
-    return screenShotFilePath;
   }
-
-
-
- public String getTempPath() {
-    try { 
-      String cananicalpath = File.createTempFile("temp_file", "tmp").getCanonicalPath();
-      int s = cananicalpath.lastIndexOf("\\");
-      return cananicalpath.substring(0, s + 1);
+  
+ public void initializeProperties() {
+    String sExecuteID = sauce_Values[8].trim();
+    String sInstance = sauce_Values[2].trim();
+    String sUser = sauce_Values[1].trim();
+    String sExecutionTime = sauce_Values[0].trim();
+    String sModuleName = sauce_Values[3].trim();
+    String sTestSetName = sauce_Values[4].trim();
+    System.out.println("sTestSetName" + sTestSetName + sTestSetName);
+    for (int i = 0; i < sauce_Values.length; i++) {
+      System.out.println("i" + i + "=" + sauce_Values[i]);
+    }
+    
+    sImagePath = 
+      (sAutomationPath + "MetaDataSources" + File.separator + sProjectName + File.separator + sECName + File.separator + "Images" + File.separator);
+    sImageExt = ".PNG";
+    sResultsFolderPath = (sAutomationPath + "Results" + File.separator + sProjectName + File.separator + sInstance + File.separator + sUser + File.separator + getDate1() + File.separator + sModuleName + File.separator + sTestSetName + File.separator);
+    System.out.println("sResultsFolderPath" + sResultsFolderPath);
+    sResultFilePath = (sResultsFolderPath + sECName + "_" + sExecuteID + "_" + sResultFlag + ".html");
+    System.out.println("sResultFilePath" + sResultFilePath);
+  }
+ 
+ 
+  public String addspace(int noofSpaces)
+  {
+    String space = "";
+    for (int i = 0; i < noofSpaces; i++) {
+      space = space + ' ';
+    }
+    return space;
+  }
+ 
+ 
+  public void generateHtml(String xmlFile, String htmlFilePath)
+  {
+    String xslFile = sAutomationPath + "Results" + File.separator + "Results.xsl";
+    System.out.println("Entered into generateHtml CurrentRunReports");
+    try {
+      TransformerFactory tFactory = TransformerFactory.newInstance();
+      Transformer transformer = 
+        tFactory.newTransformer(
+        new StreamSource(
+        xslFile));
+      
+      transformer.transform(
+        new StreamSource(
+        xmlFile), 
+        new StreamResult(
+        new FileOutputStream(htmlFilePath)));
     }
     catch (Exception e) {
       e.printStackTrace();
     }
-    return null;
   }
-
+ 
 
