@@ -1,0 +1,120 @@
+public void resultXMLFileCreation()
+  {
+    initializeProperties();
+    
+    BufferedReader reader = null;
+    Writer output = null;
+    Writer output1 = null;
+    
+
+
+    try
+    {
+      String sExecuteID = sauce_Values[8];
+      String sInstanceName = sauce_Values[2];
+      String sTestCaseName = sECName;
+      duration = getTime(startTime, endTime);
+      timeDiff = getDateTimeDifference(startTime, endTime);
+      
+
+      String username = System.getProperty("user.name");
+      
+
+      String xmlstring = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><?xml-stylesheet type=\"text/xsl\" href=\"" + 
+      
+
+
+        sAutomationPath + "Results" + File.separator + "Results.xsl" + 
+        '"' + "?>";
+      String newline = System.getProperty("line.separator");
+      reader = new BufferedReader(new InputStreamReader(System.in));
+      xmlstring = xmlstring + newline + addspace(2) + "<TestCase>" + 
+        newline + addspace(4) + "<Details>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<ProjectName>" + 
+        sProjectName + "</ProjectName>" + newline;
+      xmlstring = xmlstring + addspace(4) + 
+        "<Environment>" + os + "-" + sBrowser + File.separator + sInstanceName + "</Environment>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<TestCaseName>" + sTestCaseName + "</TestCaseName>" + 
+        newline;
+      xmlstring = xmlstring + addspace(4) + "<User>" + username + 
+        "</User>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<Date>" + 
+        now("yyyy.MM.dd  'at' hh:mm:ss ") + "</Date>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<RunId>" + sExecuteID + 
+        "</RunId>" + newline;
+      xmlstring = xmlstring + addspace(4) + "<Result>" + sResultFlag + 
+        "</Result>" + newline;
+      xmlstring = xmlstring + addspace(4) + "</Details>" + newline + 
+        newline;
+      xmlstring = xmlstring + addspace(4) + "<Steps>" + newline;
+      int vSize = verification.size();
+      
+      if (vSize < 0) {
+        reportStepDetails("No Selenium code \"", 
+          "Please Contact Functional/Automation team :  ", "Fail");
+      }
+      for (int i1 = 0; i1 < verification.size(); i1++) {
+        xmlstring = xmlstring + addspace(6) + "<Step>" + newline;
+        xmlstring = xmlstring + addspace(8) + "<StepNumber>" + (i1 + 1) + 
+          "</StepNumber>" + newline;
+        xmlstring = xmlstring + addspace(8) + "<Verification>" + 
+          (String)verification.get(i1) + "</Verification>" + newline;
+        String sDescriptioncontent = (String)description.get(i1);
+        if (sDescriptioncontent.contains("Screenshot:")) {
+          xmlstring = 
+          
+
+
+
+            xmlstring + addspace(8) + "<Description>" + sDescriptioncontent.substring(0, sDescriptioncontent.indexOf("Screenshot:")) + "</Description>" + newline;
+          xmlstring = xmlstring + 
+            addspace(8) + 
+            "<Screenshot>" + 
+            sDescriptioncontent.substring(sDescriptioncontent
+            .indexOf("Screenshot:") + 11) + 
+            "</Screenshot>" + newline;
+        } else {
+          xmlstring = 
+            xmlstring + addspace(8) + "<Description>" + (String)description.get(i1) + "</Description>" + newline; }
+        xmlstring = 
+          xmlstring + addspace(8) + "<Status>" + (String)status.get(i1) + "</Status>" + newline;
+        xmlstring = xmlstring + addspace(8) + "<DateTime>" + 
+          (String)dateTime.get(i1) + "</DateTime>" + newline;
+        xmlstring = xmlstring + addspace(6) + "</Step>" + newline;
+      }
+      xmlstring = xmlstring + addspace(4) + "</Steps>" + newline;
+      xmlstring = xmlstring + addspace(2) + "</TestCase>" + newline;
+      
+
+      File dir = new File(sResultsFolderPath);
+      if (!dir.exists()) {
+        dir.mkdirs();
+      }
+      
+
+
+      String resultHtml = sResultFilePath;
+      String tempXml = getTempPath() + sECName + ".xml";
+      System.out.println("**tempXml**" + tempXml);
+      
+
+      File xmlfile = new File(tempXml);
+      
+      output1 = new BufferedWriter(new FileWriter(xmlfile));
+      output1.write(xmlstring);
+      
+      output1.close();
+      generateHtml(tempXml, resultHtml);
+      
+      File reportFile = new File(getTempPath() + "CurrentRunReports");
+      if (!reportFile.exists()) {
+        reportFile.mkdir();
+      }
+      generateHtml(tempXml, getTempPath() + "CurrentRunReports" + File.separator + sECName + ".html");
+
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
+  }
