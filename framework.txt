@@ -1,3 +1,7 @@
+http://blog.varunin.com/2010/05/generating-selenium-reports-using.html
+
+
+
 public void resultXMLFileCreation()
   {
     initializeProperties();
