@@ -1,0 +1,44 @@
+<project name="${env.PROJECT_NAME}" basedir=".">
+	<property name="userName" value="${env.USERNAME}" />
+	<property name="buildNumber" value="${env.BUILD_NUMBER}" />
+	<property name="jobName" value="${env.JOB_NUMBER}"/>
+	<property name="automationPath" value="${env.AUTOMATION_PATH}" />
+	<property name="projectName" value="${env.PROJECT_NAME}" />
+	<property name="temp" value="${env.Temp}" />
+	<property name="lib.dir" value="lib" />
+	<property name="src.dir" value="src" />
+	<property name="test.dir" value="test" />
+	
+	
+    <path id="test.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+	
+	<target name="clean">
+		<delete dir="${test.dir}/runtime-totals\output">
+	</target>
+	
+	<target name="copy" depends="clean">
+		<copy file="${temp}/test-output/testng-results.xml" todir="${automationPath}/${projectName}/testng-xslt">
+	</target>
+     
+    <target name="testng-xslt-report" depends="copy">
+        <xslt in="${temp}/test-output/testng-results.xml" style="${src.dir}/testng-results.xsl" out="${test.dir}/runtime-totals/output/index.html">
+            <param expression="${test.dir}/runtime-totals/output/" name="testNgXslt.outputDir" />
+ 
+            <param expression="true" name="testNgXslt.sortTestCaseLinks" />
+ 
+            <param expression="FAIL,SKIP,PASS,CONF,BY_CLASS" name="testNgXslt.testDetailsFilter" />
+ 
+            <param expression="true" name="testNgXslt.showRuntimeTotals" />
+ 
+            <classpath refid="test.classpath"">
+            </classpath>
+        </xslt>
+    </target>
+	
+	
+	
+</project>
