@@ -1,0 +1,92 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>SaffuseFramework_Maven</groupId>
+  <artifactId>SaffuseFramework_Maven</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>SaffuseFramework_Maven</name>
+  <description>For Testing Purpose</description>
+  
+ <dependencies>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-server</artifactId>
+			<version>2.46.0</version>
+		</dependency>
+		
+		<!--  <dependency>
+			<groupId>com.prolifics</groupId>
+			<artifactId>ArsinFramework</artifactId>
+			<version>1.9</version>
+		</dependency>-->
+		
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.8</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.googlecode.json-simple</groupId>
+		    <artifactId>json-simple</artifactId>
+		    <version>1.1.1</version>
+		</dependency>
+		
+		<dependency>
+    		<groupId>org.swinglabs</groupId>
+    		<artifactId>swingx</artifactId>
+    		<version>0.9.2</version>
+    		<scope>system</scope>
+    		<systemPath>${project.basedir}/libs/ArsinFrameWork1.8.jar</systemPath>
+		</dependency>	
+</dependencies>
+
+<pluginRepositories>
+    <pluginRepository>
+      <id>reporty-ng</id>
+      <url>https://github.com/cosminaru/reporty-ng/raw/master/dist/maven</url>
+    </pluginRepository>
+ </pluginRepositories>
+
+	<build>	
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<fork>true</fork>
+	                <executable>${JAVA_HOME}\bin\javac.exe</executable>	               
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12</version>
+				<inherited>true</inherited>
+				<configuration>
+					<suiteXmlFiles>
+						<suiteXmlFiles>testng.xml</suiteXmlFiles>
+					</suiteXmlFiles>
+				</configuration>
+			</plugin>
+		</plugins>	
+	</build>
+	
+	 <reporting>
+    	<plugins>
+    		<!-- TestNG-xslt related configuration. -->
+      		<plugin>
+        		<groupId>org.reportyng</groupId>
+        		<artifactId>reporty-ng</artifactId>
+        		<version>1.2</version>
+       			<configuration>
+          			<!-- Output directory for the testng xslt report -->
+          			<outputDir>/target/testng-xslt-report</outputDir>
+          			<sortTestCaseLinks>true</sortTestCaseLinks>
+          			<testDetailsFilter>FAIL,SKIP,PASS,CONF,BY_CLASS</testDetailsFilter>
+          			<showRuntimeTotals>true</showRuntimeTotals>
+        		</configuration>
+      		</plugin>
+    	</plugins>
+  	</reporting>
+</project>
