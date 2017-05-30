@@ -378,7 +378,6 @@
 				return (sText);
 			case "closeBrowser":
 				driver.close();
-				//System.out.println("close browser");
 				stepDetails("Closing window",
 						"Successfully closed window", "Pass");
 				return "Pass";
@@ -397,7 +396,11 @@
 				stepDetails("Refresh current page",
 						"Successfully refreshed current page", "Pass");
 				return "Pass";
-				
+			case "windowMaximize":
+				driver.manage().window().maximize();
+				stepDetails("Maximizing window",
+						"Successfully maximized window", "Pass");
+				return "Pass";
 			default:
 				reportUnknowSeleniumCmdErr(sCommand);
 			}
@@ -409,337 +412,44 @@
 		return "";
 	}
 
-	public String effecta(String sCommand, String sTarget) {
-		int sTargetFlag = 0;
+	public String method(String sCommand, String sLocator) {
+		
 		String sText = "";
-		String sValue = "";
 		boolean bFlag = false;
 		try {
-			if (sTargetFlag == 1) {
-			
+			if(getWebElement(sLocator)!=null) {
 				switch (sCommand) {
 				case "click":	
-					webElement(sTarget).click();
-					reportStepDetails("Clicking button/link/image",
-							"Successfully clicked the button/link/image", PASS);
+					getWebElement(sLocator).click();
+					stepDetails("Clicking button/link/image","Successfully clicked the button/link/image","Pass");
 					return "Pass";
 					
-				case mouseOver:		
+				case "mouseOver":		
                     Actions actionMouseOver = new Actions(driver);
-                    actionMouseOver.moveToElement(webElement(sTarget)).build().perform();
+                    actionMouseOver.moveToElement(getWebElement(sLocator)).build().perform();
 					Thread.sleep(1000);
-					reportStepDetails("MouseOver button/link/image",
-							"Successfully MouseOver the button/link/image", PASS);
-					return PASS;
-				case isChecked:
-					bFlag = webElement(sTarget).isSelected();
+					stepDetails("MouseOver button/link/image",
+							"Successfully MouseOver the button/link/image", "Pass");
+					return "Pass";
+				case "isChecked":
+					bFlag = getWebElement(sLocator).isSelected();
 					if (bFlag)
-						reportStepDetails(
+						stepDetails(
 								"Verifying whether checkbox/radio button is checked or not",
-								"Checkbox/radio button is checked", PASS);
+								"Checkbox/radio button is checked", "Pass");
 					else
-						reportStepDetails(
+						stepDetails(
 								"Verifying whether checkbox/radio button is checked or not",
-								"Checkbox/radio button is not checked", PASS);
+								"Checkbox/radio button is not checked", "Pass");
 					return (Boolean.toString(bFlag));
-				case waitForPageToLoad:
-					/*
-					 * waitForPageToLoad()
-					 * .setTimeToWait(Integer.parseInt(sTarget));
-					 */
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					driver.manage().timeouts()
-					.pageLoadTimeout(60, TimeUnit.SECONDS);
-					}
-					reportStepDtlsWithScreenshot(
-							"Waiting for a new page to load",
-							"Execution waited for new page to get loaded", PASS);
-					return PASS;
-				case openURL:
-					driver.get(sTarget);
-					reportStepDetails("Opening URL", "Successfully loaded URL:"
-							+ encodeSpecialCharacters(sTarget), PASS);
-					return PASS;
-				case openURLAfterDeleteCookies:
-					//driver.get(sTarget);
-					driver.manage().deleteAllCookies();
-					Thread.sleep(1000);
-					driver.manage().deleteCookieNamed("JSESSIONID");
-					Thread.sleep(1000);
-					driver.manage().deleteAllCookies();
-					Thread.sleep(1000);
-					driver.get(sTarget);
-					reportStepDetails("Opening URL", "Successfully loaded URL:"
-							+ encodeSpecialCharacters(sTarget), PASS);
-					return PASS;
-				case eOpen:
-					sValue = getExcelData(sTarget);
-					driver.get(sValue);
-					reportStepDetails("Opening URL", "Successfully loaded URL:"
-							+ encodeSpecialCharacters(sValue), PASS);
-					return sValue;
-				case assertTitle:
-					sText = driver.getTitle().trim();
-					if (sText.equals(sTarget)) {
-						reportStepDetails("Expected page title : "
-								+ encodeSpecialCharacters(sTarget),
-								"Successfully validated page title:  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshot("Expected page title : "
-								+ encodeSpecialCharacters(sTarget),
-								"Displayed page title :  "
-										+ encodeSpecialCharacters(sText), FAIL);
-
-					}
+				case "openUrl":
+					driver.get(sLocator);
+					stepDetails("Opening URL", "Successfully loaded URL:"
+							+ sLocator, "Pass");
+					return "Pass";
+				case "getText":
+					sText = getWebElement(sLocator).getText();
 					return sText;
-				case verifyTitle:
-					sValue = getExcelData(sTarget);
-					sText = driver.getTitle().trim();
-					if (sText.equals(sValue)) {
-						reportStepDetails(sTarget + " Expected page title : "
-								+ encodeSpecialCharacters(sValue),
-								"Successfully validated page title:  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(sTarget
-								+ " Expected page title : "
-								+ encodeSpecialCharacters(sValue),
-								"Displayed page title :  "
-										+ encodeSpecialCharacters(sText), FAIL);
-
-					}
-					return sText;
-
-				case assertConfirmation:
-					if (isAlertPresent()) {
-						sText = driver.switchTo().alert().getText();
-						driver.switchTo().alert().accept();
-						if (sText.equals(sTarget)) {
-							reportStepDetails("Expected confirmation message: "
-									+ encodeSpecialCharacters(sTarget),
-									"Successfully validated confirmation message:  "
-											+ encodeSpecialCharacters(sText),
-											PASS);
-						} else {							
-							reportStepDtlsWithScreenshot(
-									"Expected confirmation message: "
-											+ encodeSpecialCharacters(sTarget),
-											"Displayed confirmation message:  "
-													+ encodeSpecialCharacters(sText),
-													FAIL);
-						}
-					} else {
-						reportStepDetails("Verifying confirmation message",
-								"There is no confirmation message", FAIL);
-					}
-					return sText;
-				case verifyConfirmation:
-					if (isAlertPresent()) {
-						sText = driver.switchTo().alert().getText();
-						driver.switchTo().alert().accept();
-						sValue = getExcelData(sTarget);
-						if (sText.equals(sValue)) {
-							reportStepDetails(sTarget
-									+ " Expected confirmation message: "
-									+ encodeSpecialCharacters(sValue),
-									"Successfully validated confirmation message:  "
-											+ encodeSpecialCharacters(sText),
-											PASS);
-						} else {							
-							reportStepDtlsWithScreenshotWithoutExit(sTarget
-									+ " Expected confirmation message: "
-									+ encodeSpecialCharacters(sValue),
-									"Displayed confirmation message:  "
-											+ encodeSpecialCharacters(sText),
-											FAIL);
-						}
-					} else {
-						reportStepDetails(sTarget
-								+ " Verifying confirmation message",
-								"There is no confirmation message", FAIL);
-					}
-					return sText;
-				case windowMaximize:
-					driver.manage().window().maximize();
-					reportStepDetails("Maximizing window",
-							"Successfully maximized window", PASS);
-					return PASS;
-				case typeEmpty:
-					webElement(sTarget).clear();
-					reportStepDetails("Clearing an input text field",
-							"Successfully cleared text in input field", PASS);
-					return PASS;
-				case eClickAndWait:
-					sTarget = getExcelData(sTarget).trim();
-					webElement(sTarget).click();
-					sText = encodeSpecialCharacters(webElement(sTarget)
-							.getText());
-					// waitForPageToLoad().setTimeToWait(30000);
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					
-					driver.manage().timeouts()
-					.pageLoadTimeout(60, TimeUnit.SECONDS);
-					}
-					
-					reportStepDetails("Clicking button/link/image:" + sText,
-							"Successfully clicked the button/link/image:"
-									+ sText, PASS);
-					return PASS;
-				case verifyElementPresent:
-					// sText = webElement(sTarget).getText();				
-					reportStepDetails("Verifying element existence",
-							"Element exists.", PASS);
-					return PASS;
-				case isElementPresent:
-					sText = Boolean.toString(isElementPresent(sTarget));
-					return sText;
-				case assertAlert:
-					sText = driver.switchTo().alert().getText();
-					if (sText.equals(sTarget)) {
-						reportStepDetails("Expected alert message: "
-								+ encodeSpecialCharacters(sTarget),
-								"Successfully validated alert message:  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshot("Expected alert message: "
-								+ encodeSpecialCharacters(sTarget),
-								"Displayed alert message: "
-										+ encodeSpecialCharacters(sText), FAIL);
-					}
-					return sText;
-				case verifyAlert:
-					sValue = getExcelData(sTarget).trim();
-					sText = driver.switchTo().alert().getText();
-					if (sText.equals(sValue)) {
-						reportStepDetails(sTarget
-								+ " Expected alert message : "
-								+ encodeSpecialCharacters(sValue),
-								"Successfully validated alert message:  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(sTarget
-								+ " Expected alert message : "
-								+ encodeSpecialCharacters(sValue),
-								"Displayed  alert message:  "
-										+ encodeSpecialCharacters(sText), FAIL);
-
-					}
-					return sText;
-				case getText:
-					sText = webElement(sTarget).getText();
-					return sText;
-				case selectWindow:
-					driver.switchTo().window(sTarget);
-					// saveNewHandles(driver);
-					// String windname=ifNewWindowOccursFocusOnIt(driver);
-					// selenium.selectWindow(sTarget);
-					reportStepDetails("Selecting the window "
-							+ encodeSpecialCharacters(sTarget),
-							"Successfully selected window with ID "
-									+ encodeSpecialCharacters(sTarget), PASS);
-					return PASS;
-				case selectFrame:					
-				
-					if(sTarget.matches("[0-9]+")){
-						int index=Integer.parseInt(sTarget);						
-						driver.switchTo().frame(index);
-					} else{					
-						driver.switchTo().frame(sTarget);
-					}					
-									
-					reportStepDetails("Selecting the window "
-							+ encodeSpecialCharacters(sTarget),
-							"Successfully selected window with ID "
-									+ encodeSpecialCharacters(sTarget), PASS);
-					return PASS;
-					
-				case waitForFrameAndSelect:
-				
-					//WebDriverWait wait=new WebDriverWait(driver,100);
-					if(sTarget.matches("[0-9]+")){
-						int index=Integer.parseInt(sTarget);						
-						driver.switchTo().frame(index);
-					} else{						
-						//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(sTarget));
-						driver.switchTo().frame(sTarget);
-					}					
-									
-					reportStepDetails("Selecting the window "
-							+ encodeSpecialCharacters(sTarget),
-							"Successfully selected window with ID "
-									+ encodeSpecialCharacters(sTarget), PASS);
-					return PASS;
-				
-				case getAttribute:
-					sTarget = sTarget.substring(0, sTarget.lastIndexOf("@"));
-					String atribute_name = sTarget.substring(sTarget
-							.lastIndexOf("@") + 1);
-					sText = webElement(sTarget).getAttribute(atribute_name);
-					return sText;
-				case getXpathCount:
-					sText = Integer.toString(driver.findElements(
-							By.xpath(sTarget)).size());
-					return sText;
-				case getSelectedLabel:
-					Select foo = new Select(webElement(sTarget));
-					sText = foo.getFirstSelectedOption().getText();					
-					reportStepDetails("Retrieving selected option label",
-							"Drop-down contains label:"
-									+ encodeSpecialCharacters(sText), PASS);
-					return sText;
-				case getCookieByName:
-					sText = driver.manage().getCookieNamed(sTarget).toString();
-					reportStepDetails("Retrieving the value of cookie \""
-							+ encodeSpecialCharacters(sTarget) + "\"",
-							"Value of cookie \""
-									+ encodeSpecialCharacters(sTarget) + "\":"
-									+ encodeSpecialCharacters(sText), PASS);
-					return sText;
-				case clickAndWait:
-					
-				/*	WebDriverWait wait1 = new WebDriverWait(driver, 250);
-					WebElement element = wait1.until(ExpectedConditions.elementToBeClickable(by(sTarget)));
-					element.click();*/
-					
-					//webElement(sTarget).click();
-					//waitForPageToLoad().setTimeToWait(30000);
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-						webElement(sTarget).click();
-					}
-					else{
-					driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					webElement(sTarget).click();
-					}
-					/*if(sBrowser.contains("Safari")){
-						Thread.sleep(30000);
-					}*/
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-						driver.manage().timeouts()
-						.pageLoadTimeout(250, TimeUnit.SECONDS);
-					}
-
-					reportStepDetails("Clicking link/image/button",
-							"Successfully clicked link/image/button", PASS);
-					return PASS;
 				default:
 					reportUnknowSeleniumCmdErr(sCommand);
 				}
@@ -747,9 +457,9 @@
 				captureScreenShot();
 				reportElementNotFound(sCommand);
 			}
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
-
 			reportException(sCommand, e.toString());
 		}
 		return "";
@@ -776,769 +486,10 @@
 				+ sCommand + "\"", "Please Contact Automtaion team", "Fail");
 	}
 	
-	
-	public String effecta(String sCommand, String sTarget, String sTitle) {
+	public String method(String sCommand,String sLocator,String sDescription){
 		String sText, encodedTitle, sValue = "";
 		int sTargetFlag = 0;
 		boolean checked, flag = false;
-		try {
-			encodedTitle = encodeSpecialCharacters(sTitle);
-			if (sCommand.equals("sendReport") || sCommand.equals("compare")
-					|| sCommand.equals("openWindow")
-					|| sCommand.equals("waitForPopUp")
-					|| sCommand.equals("compareURLs")
-					|| sCommand.equals("captureEntirePageScreenshot")
-					|| sCommand.equals("waitForElementPresent")
-					|| sCommand.equals("assertTextPresent")
-					|| sCommand.equals("waitForTextPresent")
-					|| sCommand.equals("eOpenWindow")
-					|| sCommand.equals("isElementInVisible")
-					|| sCommand.equals("waitUntilElementVisible")
-					//|| sCommand.equals("verifyElementPresent")
-					|| sCommand.equals("getAttribute")) {				
-				sTargetFlag = 1;
-			} else if (sTarget.contains("&&")) {
-				String[] sTargetArray = sTarget.split("&&");
-				for (int i = 0; i < sTargetArray.length; i++) {
-					if (isElementPresent(sTargetArray[i])) {
-						sTarget = sTargetArray[i];
-						sTargetFlag = 1;
-						break;
-					}
-				}
-			} else if (isElementPresent(sTarget)) {
-				sTargetFlag = 1;
-			}
-			
-			if (sCommand.equals("verifyElementPresent") && sTargetFlag == 0) {
-				//return (FAIL);
-				//sText = webElement(sTarget).getText().trim();
-				reportStepDtlsWithScreenshotWithoutExit("Verifying element existence","Element Not exists : "+encodedTitle, FAIL);
-				return sTitle;
-				
-			}
-
-			if (sTargetFlag == 1) {
-				enumCommand = checkEnumConstant(sCommand);
-				switch (enumCommand) {
-				case verifyElementPresent:
-					// sText = webElement(sTarget).getText();				
-					reportStepDetails("Verifying element existence","Element exists : "+encodedTitle, PASS);
-					return PASS;
-				
-					
-				/*case verifyElementPresent:
-					// sText="Element is Present";
-					//sValue = getExcelData(sTitle);
-					sText = webElement(sTarget).getText().trim();
-					sValue = sTitle.trim();
-					if (isElementPresent(sTarget)) {
-						if(sValue.contains(sTitle)){
-						reportStepDetails(" Expected text : "
-								+ encodeSpecialCharacters(sValue),
-								"Successfully validated text:  "
-										+ encodeSpecialCharacters(sTitle), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(" Expected text : "
-								+ encodeSpecialCharacters(sValue),
-								"Displayed  text :  "
-										+ encodeSpecialCharacters(sTitle), FAIL);
-
-					}
-				}
-					return sTitle;*/
-					
-/*					        try{
-						      if (webElement(sTarget).isDisplayed()) {
-						            sText = webElement(sTarget).getText();
-						            reportStepDetails("Element: "+ encodedTitle, "Element is Available"
-		                                    , PASS);
-						      }
-						     }
-						     catch(Exception e){
-						    	 e.printStackTrace();
-						    	 //sText = "Element is Not Present";
-						            reportStepDtlsWithScreenshotWithoutExit ("Element :" + encodedTitle,
-					                        "Element is not available"
-					                                    , FAIL);
-						     }
-						      return sText;
-				*/
-
-				case assertValue:
-					sText = webElement(sTarget).getAttribute("value").trim();
-					sTitle = sTitle.trim();
-					if (sText.equals(sTitle)) {
-						reportStepDetails("Expected value: " + encodedTitle,
-								"Successfully validated value: "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {
-						reportStepDtlsWithScreenshot("Expected value: "
-								+ encodedTitle, "Actual value: "
-										+ encodeSpecialCharacters(sText), FAIL);
-					}
-					return sText;
-				case isElementInVisible:
-					  sText="Element is Present";
-					  
-				     /*WebDriverWait waitIn = new WebDriverWait(driver,5);
-				      waitIn.until(ExpectedConditions.invisibilityOfElementLocated(by(sTarget)));*/
-					  Thread.sleep(2000); 
-				     try{				    	
-				      if (webElement(sTarget).isDisplayed()) {
-				            sText = webElement(sTarget).getText();
-				            reportStepDtlsWithScreenshotWithoutExit("Validated Element :" + encodedTitle,	sText, FAIL);
-				      }	
-				      else{				    	 				    	
-					    	 sText = "Element is Not Present";
-					            reportStepDetails("Validated Element: "+ encodedTitle, sText
-					                                    , PASS);
-				      }
-				      
-				     }
-				     catch(Exception e){				    			    	
-				    	 sText = "Element is Not Present";
-				            reportStepDetails("Validated Element: "+ encodedTitle, sText
-				                                    , PASS);
-				            e.printStackTrace();
-				     }				     
-				      return sText;
-				case eOpenWindow:
-					sValue = getExcelData(sTarget);
-					driver.navigate().to(sValue);
-					reportStepDetails("Opening popup window " + encodedTitle,
-							"Successfully opened " + encodedTitle
-							+ " popup window", PASS);
-					return sValue;
-				case waitUntilElementVisible:
-					flag = false;
-					int secsToWait = Integer.parseInt(sTitle);
-
-					for (int second = 0;; second++) {
-						if (second >= secsToWait) {
-							flag = false;
-							break;
-						}
-						if (webElement(sTarget).isDisplayed()) {
-							flag = true;
-							break;
-						}
-						Thread.sleep(1000);
-					}
-					return Boolean.toString(flag);
-				case isSpecifiedOptionChecked:
-					checked = webElement(sTarget).isSelected();
-					if (checked)
-						reportStepDetails("Verifying whether \"" + encodedTitle
-								+ "\" is selected or not", "\"" + encodedTitle
-								+ "\" is selected", PASS);
-					else
-						reportStepDetails("Verifying whether \"" + encodedTitle
-								+ "\" is selected or not", "\"" + encodedTitle
-								+ "\" is not selected", PASS);
-					return (Boolean.toString(checked));
-				case typeEmpty:
-					webElement(sTarget).clear();
-					reportStepDetails("Setting value of " + encodedTitle,
-							encodedTitle + " is set to : \"\"", PASS);
-					return PASS;
-				case type:
-					// sValue = getExcelData(sTitle);
-					//sValue = appendCurrentDateNTime(sTitle);
-					 sValue = sTitle;
-					WebElement elmnt = webElement(sTarget);
-					elmnt.clear();
-					elmnt.sendKeys(sValue);
-					reportStepDetails("Setting value of " + encodedTitle,
-							encodedTitle + " is set to value: \""
-									+ encodeSpecialCharacters(sValue) + "\"",
-									PASS);
-					return sValue;
-				case typeWithoutClear:
-					// sValue = getExcelData(sTitle);
-					//sValue = appendCurrentDateNTime(sTitle);
-					sValue = sTitle;
-					WebElement elmntc = webElement(sTarget);
-					elmntc.sendKeys(sValue);
-					reportStepDetails("Setting value of " + encodedTitle,
-							encodedTitle + " is set to value: \""
-									+ encodeSpecialCharacters(sValue) + "\"",
-									PASS);
-					return sValue;
-				case typePassword:
-					sValue = getExcelData(sTitle);
-					elmnt = webElement(sTarget);
-					elmnt.clear();
-					String value=encryptPassword(sValue);
-					elmnt.sendKeys(sValue);
-					reportStepDetails("Setting value of " + encodedTitle,
-							encodedTitle + " is set to : "+value, PASS);
-					return sValue;
-				case isChecked:
-					checked = false;
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sTitle));
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					checked = webElement(sTarget).isSelected();
-					if (checked)
-						reportStepDetails("Verifying whether \"" + encodedTitle
-								+ "\" is selected or not", "\"" + encodedTitle
-								+ "\" is selected", PASS);
-
-					else
-						reportStepDetails("Verifying whether \"" + encodedTitle
-								+ "\" is selected or not", "\"" + encodedTitle
-								+ "\" is not selected", PASS);
-					return Boolean.toString(checked);
-				case waitForElementPresent:
-					secsToWait = Integer.parseInt(sTitle);
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					//System.out.println("enter into driverWaitForElementPresent");
-					WebDriverWait wait = new WebDriverWait(driver, secsToWait);
-					WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(by(sTarget)));
-					if(element==null){
-						reportStepDtlsWithScreenshot(
-								"Checking the existence of element in :"
-										+ sCommand+" command:" ,
-										"Element verification \"" + sTarget
-										+ "\" failed", FAIL);
-					}
-					return Boolean.toString(flag);
-					
-				case waitForElementVisible:
-					secsToWait = Integer.parseInt(sTitle);
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					//System.out.println("enter into driverWaitForElementPresent");
-					WebDriverWait wait1 = new WebDriverWait(driver, secsToWait);
-					WebElement element1 = wait1.until(ExpectedConditions.visibilityOfElementLocated(by(sTarget)));
-					if(element1==null){
-						reportStepDtlsWithScreenshot(
-								"Checking the existence of element in :"
-										+ sCommand+" command:" ,
-										"Element verification \"" + sTarget
-										+ "\" failed", FAIL);
-					}
-					return Boolean.toString(flag);
-					
-			
-				case waitForValue:
-					flag = false;
-					secsToWait = Integer.parseInt(sTitle);
-					sText = "";
-					for (int second = 0;; second++) {
-						if (second >= secsToWait) {
-							flag = false;
-							break;
-						}
-						sText = webElement(sTarget).getAttribute("value")
-								.trim();
-						if (sText.trim().length() > 0) {
-							flag = true;
-							break;
-						}
-						Thread.sleep(1000);
-					}
-					return sText;
-					/*
-					 * case waitForTextPresent: sValue = getExcelData(sTarget);
-					 * int secsToWait = Integer.parseInt(sTitle);
-					 * 
-					 * for (int second = 0;; second++) { if (second >=
-					 * secsToWait) { flag1 = false; break; } if (driver
-					 * selenium.isTextPresent(sValue)) { flag1 = true; break; }
-					 * 
-					 * Thread.sleep(1000); } return Boolean.toString(flag1);
-					 */
-				case getText:
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					sText = webElement(sTarget).getText();
-					reportStepDetails("Retrieving " + encodedTitle,
-							"Retrieved " + encodedTitle + ":"
-									+ encodeSpecialCharacters(sText), PASS);
-					return sText;
-				case getAttribute:
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sTitle));
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					sTarget = sTarget.substring(0, sTarget.lastIndexOf("@"));
-					String atribute_type = sTarget.substring(sTarget
-							.lastIndexOf("@") + 1);
-					sText = webElement(sTarget).getAttribute(atribute_type);
-					reportStepDetails("Retrieving " + encodedTitle,
-							"Retrieved " + encodedTitle + ":"
-									+ encodeSpecialCharacters(sText), PASS);
-					return sText;
-				case select:
-					//sValue = getExcelData(sTitle);
-					sValue = sTitle;
-					if (sValue.startsWith("label="))
-						sValue = sValue.substring(sValue.indexOf("=") + 1);
-					WebElement select = webElement(sTarget);
-					List<WebElement> options = select.findElements(By
-							.tagName("option"));
-					for (WebElement option : options) {
-						if (option.getText().equals(sValue)) {
-							option.click();
-							break;
-						}
-					}
-					
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					
-					driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					}
-					/*
-					 * Select select = new Select(webElement(sTarget));
-					 * select.selectByValue(sValue);
-					 */
-					reportStepDetails("Selecting an option from drop-down:"
-							+ encodedTitle,
-							"Successfully selected the list value: "
-									+ encodeSpecialCharacters(sValue), PASS);
-					return sValue;
-					/*
-					 * case selectSpecifiedOption: select = new
-					 * Select(webElement(sTarget));
-					 * select.selectByVisibleText(sTitle);
-					 * reportStepDetails("Selecting an option from drop-down",
-					 * "Successfully Selected the list value : " + encodedTitle,
-					 * PASS); if (sTitle.startsWith("label=")) sTitle =
-					 * sTitle.substring(sTitle.indexOf("=") + 1); return sTitle;
-					 */
-				case captureEntirePageScreenshot:					
-					String screenshotFile=captureScreenShot();
-					reportStepDetails(
-							encodeSpecialCharacters(sTarget),
-							screenshotFile, PASS);
-					
-					return PASS;
-				
-				case getXpathCount:
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sTitle));
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					sText = String.valueOf(driver.findElements(
-							By.xpath(sTarget)).size());
-					reportStepDetails("Verifying " + encodedTitle, "Number of "
-							+ encodedTitle + ": " + sText, PASS);
-					return sText;
-				case openWindow:
-					driver.navigate().to(sTarget);
-					reportStepDetails("Opening popup window " + encodedTitle,
-							"Successfully opened " + encodedTitle
-							+ " popup window", PASS);
-					return PASS;
-					/*
-					 * case waitForPopUp: reportStepDetails("Waiting for " +
-					 * sTarget + " popup window to appear",
-					 * "Successfully waited for the popup window \"" + sTarget +
-					 * "\" to appear", PASS); return sValue;
-					 */
-				case verifyValue:
-					sValue = getExcelData(sTitle).trim();
-					sText = webElement(sTarget).getAttribute("value").trim();
-					if (sText.equals(sValue)) {
-						reportStepDetails(encodedTitle + "  Expected value : "
-								+ encodeSpecialCharacters(sValue),
-								"Successfully validated value:  "
-										+ encodeSpecialCharacters(sText), PASS);
-						return sText;
-					} else {					
-						reportStepDtlsWithScreenshot(encodedTitle
-								+ " Expected value : "
-								+ encodeSpecialCharacters(sValue),
-								"Displayed value :  "
-										+ encodeSpecialCharacters(sText), FAIL);
-					}
-					return sText;
-				case getValue:
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sTitle).trim());
-					encodedTitle = encodeSpecialCharacters(sTitle).trim();
-					sText = webElement(sTarget).getAttribute("value").trim();
-					reportStepDetails("Retrieving value of input field: "
-							+ encodedTitle, "Successfully retrieved value: "
-									+ encodeSpecialCharacters(sText), PASS);
-					return sText;
-				case sendReport:
-					reportStepDetails(encodeSpecialCharacters(" "+sTarget),
-							encodeSpecialCharacters(sTitle), PASS);
-				case verifySubText:
-					sValue = getExcelData(sTitle).trim();
-					sText = webElement(sTarget).getText().trim();
-					if (sText.contains(sValue)) {
-						reportStepDetails(" "+"Verifying text " + encodedTitle,
-								"\"" + encodeSpecialCharacters(sValue)
-								+ "\" text appears in \""
-								+ encodeSpecialCharacters(sText) + "\"",
-								PASS);
-					} else {						
-						reportStepDtlsWithScreenshot(" "+"Verifying text "
-								+ encodedTitle, "\""
-										+ encodeSpecialCharacters(sValue)
-										+ "\" text doesn't appears \""
-										+ encodeSpecialCharacters(sText) + "\"", FAIL);
-					}
-					return sText;
-				case assertSubText:
-					sText = webElement(sTarget).getText().trim();
-					if (sText.contains(sTitle)) {
-						reportStepDetails("Verifying text:\"" + encodedTitle
-								+ "\"", "\"" + encodedTitle
-								+ "\" text appears in \""
-								+ encodeSpecialCharacters(sText) + "\"", PASS);
-					} else {						
-						reportStepDtlsWithScreenshot("Verifying text:\""
-								+ encodedTitle + "\"", "\"" + encodedTitle
-								+ "\" text doesn't appears in \""
-								+ encodeSpecialCharacters(sText) + "\"", FAIL);
-						stopSelenium();
-					}
-					return sText;
-				case verifyTextPresent:
-					//sValue = sTitle.trim();
-					sValue = getExcelData(sTitle).trim();
-					sText = webElement(sTarget).getText().trim();
-					if (sText.equals(sValue)) {
-						reportStepDetails(" "+"Validated: " + encodedTitle
-								+ " Expected text : "
-								+ encodeSpecialCharacters(sValue),
-								"Displayed  text :  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(" "+"Validated: "
-								+ encodedTitle + " Expected text : "
-								+ encodeSpecialCharacters(sValue),
-								"Displayed  text :  "
-										+ encodeSpecialCharacters(sText), FAIL);
-						
-					}
-					return sText;
-				case verifyText:
-					/*sValue = getExcelData(sTitle);
-					sText = webElement(sTarget).getText().trim();*/
-					sText = webElement(sTarget).getText().trim();
-					sValue = sTitle.trim();
-					if (sText.equals(sValue)) {
-						reportStepDetails(" "+"Validated: " + encodedTitle
-								+ " Expected text : "
-								+ encodeSpecialCharacters(sValue),
-								"Successfully validated text:  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(" "+"Validated: "
-								+ encodedTitle + " Expected text : "
-								+ encodeSpecialCharacters(sValue),
-								"Displayed  text :  "
-										+ encodeSpecialCharacters(sText), FAIL);
-
-					}
-					return sText;
-				case assertText:
-					sText = webElement(sTarget).getText().trim();
-					sTitle = sTitle.trim();
-					if (sText.equals(sTitle)) {
-						reportStepDetails(" "+"Verification:Expected text : " + encodedTitle,
-								"Successfully validated text:  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshot(" "+"Expected text : "
-								+ encodedTitle, "Displayed  text :  "
-										+ encodeSpecialCharacters(sText), FAIL);
-						stopSelenium();
-					}
-					return sText;
-				case assertTextPresent:
-					sText = webElement(sTarget).getText().trim();
-					sTitle = sTitle.trim();
-					if (sText.equals(sTitle)) {
-						reportStepDetails(" "+"Expected text : " + encodedTitle,
-								"Successfully validated text:  "
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(" "+"Expected text : "
-								+ encodedTitle, "Displayed  text :  "
-										+ encodeSpecialCharacters(sText), FAIL);
-						stopSelenium();
-						//fail(sCommand);
-					}
-					return sText;
-				case click:
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					}
-					//System.out.println("***in click****");
-					if (sTitle.endsWith(".id") || sTitle.endsWith(".name")
-							|| sTitle.endsWith(".link"))
-						encodedTitle = encodeSpecialCharacters(sTitle
-								.substring(0, sTitle.lastIndexOf(".")));
-					else						
-						encodedTitle = encodeSpecialCharacters(sTitle);
-					//Thread.sleep(2000);
-					   // executor.executeScript("arguments[0].click();", webElement(sTarget));
-					    //Thread.sleep(3000);
-					WebElement clickElementjs = null;    
-					try{
-					    	//System.out.println("Click Entered for 3 arguments");
-					    	clickElementjs=webElement(sTarget);
-					    	//WebElement elementjs=driver.findElement(By.)
-						webElement(sTarget).click();
-						//System.out.println("Click on 3 Args");
-					    }
-					    catch(Exception e){
-					    	//System.out.println("Entered Execption Click on 3 Args");
-					    	JavascriptExecutor clickJavaScript = (JavascriptExecutor)driver;
-					    	clickJavaScript.executeScript("arguments[0].click();", clickElementjs);
-					    }
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					
-						driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					}
-						 //Thread.sleep(2000);
-					   
-					
-					
-					reportStepDetails("Clicking button/link/image:"
-							+ encodedTitle,
-							"Successfully clicked button/link/image:"
-									+ encodedTitle, PASS);
-					return PASS;
-				case clickAndWait:
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					
-					driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					}
-					/*WebDriverWait wait1 = new WebDriverWait(driver, 250);
-					WebElement element1 = wait1.until(ExpectedConditions.elementToBeClickable(by(sTarget)));*/
-					
-					if (sTitle.endsWith(".id") || sTitle.endsWith(".name")
-							|| sTitle.endsWith(".link"))
-						encodedTitle = encodeSpecialCharacters(sTitle
-								.substring(0, sTitle.lastIndexOf(".")));
-					else
-						encodedTitle = encodeSpecialCharacters(sTitle);
-					//Thread.sleep(1000);
-					    //executor.executeScript("arguments[0].click();", webElement(sTarget));
-					    //Thread.sleep(3000);
-					//element1.click();
-					 webElement(sTarget).click();
-					 //driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					// driver.manage().timeouts().setScriptTimeout(100,TimeUnit.SECONDS);
-					// Thread.sleep(3000);
-					try{
-						if(sBrowser.contains("Safari")){
-							WebDriverWait safariWait=new WebDriverWait(driver,80);
-							JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-							safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-						}
-						else{
-						driver.manage().timeouts()
-						.pageLoadTimeout(60, TimeUnit.SECONDS);
-						}
-					}catch(TimeoutException te){
-					//	reportException(sCommand, te.toString());
-						reportException(sCommand, sTitle);
-					}	
-					catch(Exception e){
-						reportException(sCommand, sTitle);
-					}
-					
-					reportStepDetails("Clicking button/link/image:"
-							+ encodedTitle,
-							"Successfully clicked button/link/image:"
-									+ encodedTitle, PASS);
-					return PASS;
-					/*
-					 * case check: encodedTitle =
-					 * encodeSpecialCharacters(getExcelData(sTitle));
-					 * webElement(sTarget). selenium.check(sTarget);
-					 * reportStepDetails("Checking a checkbox/radio button:" +
-					 * encodedTitle,
-					 * "Successfully checked checkbox/radio button:" +
-					 * encodedTitle, PASS); return PASS;
-					 */
-				case clickSpecifiedLink:
-					webElement(sTarget).click();
-					reportStepDetails("Clicking button/link/image:"
-							+ encodedTitle,
-							"Successfully clicked button/link/image:"
-									+ encodedTitle, PASS);
-					return PASS;
-				case clickSpecifiedLinkNWait:
-					webElement(sTarget).click();
-					// waitForPageToLoad().setTimeToWait(30000);
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					driver.manage().timeouts()
-					.pageLoadTimeout(60, TimeUnit.SECONDS);
-					}
-					reportStepDtlsWithScreenshot("Clicking button/link/image:"
-							+ encodedTitle,
-							"Successfully clicked the button/link/image:"
-									+ encodedTitle, PASS);
-					return PASS;
-				case verifyElement:
-				/*case verifyElementPresent:
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sTitle));
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					reportStepDetails("Checking the existence of element:"
-							+ encodedTitle, "Element verification \""
-									+ encodedTitle + "\" succeeded", PASS);
-					return Boolean.toString(true);*/
-				case compare:
-					String sTitleString = "";
-					String sTargetString = "";
-					sTarget = sTarget.trim();
-					sTitle = sTitle.trim();
-					if (sTarget.contains(":")) {
-						String[] sTargetVlaue = sTarget.split(":");
-						if (sTargetVlaue[1].equals("")) {
-							sTarget = sTargetVlaue[0];
-							sTargetString = sTarget;
-						} else {
-							sTarget = sTargetVlaue[1];
-							sTargetString = sTargetVlaue[0] + sTarget;
-						}
-					} else {
-						sTargetString = sTarget;
-					}
-					if (sTitle.contains(":")) {
-						String[] sTitleVlaue = sTitle.split(":");
-						if (sTitleVlaue[1].equals("")) {
-							sTitle = sTitleVlaue[0];
-							sTitleString = sTitle;
-						} else {
-							sTitle = sTitleVlaue[1];
-							sTitleString = sTitleVlaue[0] + sTitle;
-						}
-					} else {
-						sTitleString = sTitle;
-					}
-					sTarget = sTarget.trim();
-					sTitle = sTitle.trim();
-					if (sTarget.equals(sTitle)) {
-						reportStepDetails(
-								encodeSpecialCharacters(sTargetString),
-								encodeSpecialCharacters(sTitleString), PASS);
-						return PASS;
-					} else {
-
-						reportStepDtlsWithScreenshot(
-								encodeSpecialCharacters(sTargetString),
-								encodeSpecialCharacters(sTitleString), FAIL);
-						return FAIL;
-
-					}
-				case compareURLs:
-					String sTitleString1 = "";
-					String sTargetString1 = "";
-					sTarget = sTarget.trim();
-					sTitle = sTitle.trim();
-					if (sTarget.contains("::")) {
-						String[] sTargetVlaue = sTarget.split("::");
-						if (sTargetVlaue[1].equals("")) {
-							sTarget = sTargetVlaue[0];
-							sTargetString1 = sTarget;
-						} else {
-							sTarget = sTargetVlaue[1];
-							sTargetString1 = sTargetVlaue[0] + ": " + sTarget;
-						}
-					} else {
-						sTargetString1 = sTarget;
-					}
-					if (sTitle.contains("::")) {
-						String[] sTitleVlaue = sTitle.split("::");
-						if (sTitleVlaue[1].equals("")) {
-							sTitle = sTitleVlaue[0];
-							sTitleString1 = sTitle;
-						} else {
-							sTitle = sTitleVlaue[1];
-							sTitleString1 = sTitleVlaue[0] + ": " + sTitle;
-						}
-					} else {
-						sTitleString1 = sTitle;
-					}
-					sTarget = sTarget.trim();
-					sTitle = sTitle.trim();
-					if (sTarget.equals(sTitle)) {
-						reportStepDetails(
-								encodeSpecialCharacters(sTargetString1),
-								encodeSpecialCharacters(sTitleString1), PASS);
-						return PASS;
-					} else {
-						reportStepDtlsWithScreenshot(
-								encodeSpecialCharacters(sTargetString1),
-								encodeSpecialCharacters(sTitleString1), FAIL);
-						return FAIL;
-					}
-
-				default:
-					reportUnknowSeleniumCmdErr(sCommand);
-				}
-			} else {
-				if (sCommand.equals("verifyElement")) {
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sTitle));
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					reportStepDtlsWithScreenshot(
-							"Checking the existence of element:" + encodedTitle,
-							"Element verification \"" + encodedTitle
-							+ "\" failed", FAIL);
-					return Boolean.toString(false);
-				} else if (sCommand.equals("Present")) {					
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					reportStepDtlsWithScreenshot(
-							"Checking the existence of element:" + encodedTitle,
-							"Element verification \"" + encodedTitle
-							+ "\" failed", FAIL);					
-				} else {
-					captureScreenShot();
-					reportElementNotFound(sCommand);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			if(sCommand.contains("waitFor")){
-				reportException(sCommand, "Expected");
-			}else{
-				reportException(sCommand, sTitle);
-			}
-		}
-
-		return "";
-	}
-
-
-	
-	public String method(String sCommand,String sLocator,String sDescription){
-		
 		String value;
 		try{
 			if(getWebElement(sLocator)!=null){
@@ -1547,7 +498,11 @@
 						getWebElement(sLocator).click();
 						stepDetails("Clicking on button/link/image","Succesfully clicked on "+sDescription,"Pass");
 						return "Pass";
-				
+					case "clickAndWait":
+						getWebElement(sLocator).click();
+						driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS);
+						stepDetails("Clicking on button/link/image","Succesfully clicked on "+sDescription,"Pass");
+						return "Pass";
 					case "waitForElementPresent":
 						wait=new WebDriverWait(driver,Long.parseLong(sDescription));
 						wait.until(ExpectedConditions.visibilityOfElementLocated(getByLocator(sLocator)));
@@ -1571,8 +526,8 @@
 				            e.printStackTrace();
 					     }				     
 					    return value;
-					case "isChecked":
-						boolean checked = false;
+					case "isSelected":
+						//boolean checked = false;
 						checked = getWebElement(sLocator).isSelected();
 						if (checked)
 							stepDetails("Verifying whether \"" + sDescription
@@ -1583,12 +538,48 @@
 							stepDetails("Verifying whether \"" + sDescription
 									+ "\" is selected or not", "\"" + sDescription
 									+ "\" is not selected", "Pass");
-						return Boolean.toString(checked);					
+						return Boolean.toString(checked);
 						
-					
-					
-				}	
-			}else{
+					case "isEnabled":
+						boolean enabled = false;
+						checked = getWebElement(sLocator).isEnabled();
+						if (checked)
+							stepDetails("Verifying whether \"" + sDescription
+									+ "\" is enabled or not", "\"" + sDescription
+									+ "\" is enabled", "Pass");
+
+						else
+							stepDetails("Verifying whether \"" + sDescription
+									+ "\" is enabled or not", "\"" + sDescription
+									+ "\" is not enabled", "Pass");
+						return Boolean.toString(checked);
+					case "getText":
+						
+						sText =  getWebElement(sLocator).getText();
+						stepDetails("Retrieving " + sDescription,
+								"Retrieved " + sDescription + ":"
+										+ sText, "Pass");
+						return sText;
+					case "openWindow":
+						driver.navigate().to(sLocator);
+						stepDetails("Opening popup window " + sDescription,
+								"Successfully opened " + sDescription
+								+ " popup window", "Pass");
+						return "Pass";
+					case "type":
+						sValue = sDescription;
+						WebElement elmnt = getWebElement(sLocator);
+						elmnt.clear();
+						elmnt.sendKeys(sValue);
+						stepDetails("Setting value of " + sDescription,
+								sDescription + " is set to value: \""
+										+ sValue + "\"",
+										"Pass");
+						return sValue;
+					default:
+						reportUnknowSeleniumCmdErr(sCommand);
+					}
+				}else{
 				reportElementNotFound(sCommand);
 			}
 			
@@ -1601,391 +592,40 @@
 				reportException(sCommand, sDescription);
 			}		
 		}
+		return "";
 	}
 	
-	public String effecta(String sCommand, String sTarget, String sTitle,
-			String sResult) {
+	public String effecta(String sCommand, String sLocator, String sValue,
+			String sDescription) {
 		String sText = "";
 		String encodedTitle = "";
 		int sTargetFlag = 0;
 		boolean flag = false;
 		try {
-			if (sCommand.equals("sendReport")
-					|| sCommand.equals("sendReportWithOutExit")
-					|| sCommand.equals("captureEntirePageScreenshot")
-					|| sCommand.equals("assertTextPresent")					
-					|| sCommand.equals("waitForElementPresent")) {
-				sTargetFlag = 1;
-			} else if (sTarget.contains("&&")) {
-				String[] sTargetArray = sTarget.split("&&");
-				for (int i = 0; i < sTargetArray.length; i++) {
-					if (isElementPresent(sTargetArray[i])) {
-						sTarget = sTargetArray[i];
-						sTargetFlag = 1;
-						break;
-					}
-				}
-			} else if (isElementPresent(sTarget)) {
-				sTargetFlag = 1;
-			}
-
-			if (sTargetFlag == 1) {
-				enumCommand = checkEnumConstant(sCommand);
-				switch (enumCommand) {
-				case type:
-					String sValue = sTitle;
-					//System.out.println("*********svalue***********:"+sValue);
-					WebElement elmnt1 = webElement(sTarget);
-					elmnt1.clear();
-					elmnt1.sendKeys(sValue);
-					reportStepDetails("Setting value of " + sResult,
-							sResult + " is set to value: \""
-									+ encodeSpecialCharacters(sValue) + "\"",
-									PASS);
-					return sValue;
-				case typePassword:
-					sValue = sTitle;
-					WebElement eleObj = webElement(sTarget);
-					eleObj.clear();
-					eleObj.sendKeys(sValue);
-					
-					String value=encryptPassword(sValue);
+			if(getWebElement(sLocator)!=null){
+				switch(sCommand){
+					case "type":
+						WebElement elmnt1 = getWebElement(sLocator);
+						elmnt1.clear();
+						elmnt1.sendKeys(sValue);
+						stepDetails("Setting value of " + sDescription,
+								sDescription + " is set to value: \""
+									+ sValue + "\"",
+									"Pass");
+						return sValue;
 				
-					reportStepDetails("Setting value of " + sResult,
-							sResult + " is set to : "+value, PASS);
-					
-					
-					
-					return sValue;
-				case select:
-					sValue = sTitle;
-					if (sValue.startsWith("label="))
-						sValue = sValue.substring(sValue.indexOf("=") + 1);
-					WebElement select = webElement(sTarget);
-					List<WebElement> options = select.findElements(By
-							.tagName("option"));
-					//System.out.println("legnthttth"+options.size());
-					for (WebElement option : options) {
-						
-						if (option.getText().equals(sValue)) {
-							option.click();
-							break;
-						}
-					}
-					
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					}
-					/*
-					 * Select select = new Select(webElement(sTarget));
-					 * select.selectByValue(sValue);
-					 */
-					reportStepDetails("Selecting an option from drop-down:"
-							+ sResult,
-							"Successfully selected the list value : "
-									+ encodeSpecialCharacters(sValue), PASS);
-					return sValue;
-					
-				case selectAndWait:
-					sValue = sTitle;
-					if (sValue.startsWith("label="))
-						sValue = sValue.substring(sValue.indexOf("=") + 1);
-					WebElement select1 = webElement(sTarget);
-					List<WebElement> options1 = select1.findElements(By
-							.tagName("option"));
-					//System.out.println("legnthttth"+options.size());
-					for (WebElement option : options1) {
-						if (option.getText().equals(sValue)) {
-							option.click();
-							break;
-						}
-					}
-					/*
-					 * Select select = new Select(webElement(sTarget));
-					 * select.selectByValue(sValue);
-					 */
-					reportStepDetails("Selecting an option from drop-down:"
-							+ sResult,
-							"Successfully selected the list value : "
-									+ encodeSpecialCharacters(sValue), PASS);
-					return sValue;
-
-
-				case sendReport:
-					if (sResult.equalsIgnoreCase(FAIL)) {						
-						reportStepDtlsWithScreenshot(
-								encodeSpecialCharacters(" "+sTarget),
-								encodeSpecialCharacters(sTitle), sResult);	
-						//stopSelenium();
-					} else {
-						reportStepDetails(encodeSpecialCharacters(" "+sTarget),
-								encodeSpecialCharacters(sTitle), sResult);
-					}
-					return sResult;
-				case captureEntirePageScreenshot:
-
-					reportStepDtlsWithScreenshot(
-							encodeSpecialCharacters(sTarget),
-							encodeSpecialCharacters(sTitle), sResult);
-					return PASS;
-				case clickAndWait:
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-					
-					driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					}
-				/*	WebDriverWait wait1 = new WebDriverWait(driver, 250);
-					WebElement element1 = wait1.until(ExpectedConditions.elementToBeClickable(by(sTarget)));*/
-					
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					//element1.click();
-					webElement(sTarget).click();
-					//driver.manage().timeouts().pageLoadTimeout(100, TimeUnit.SECONDS);
-					/*if(sBrowser.contains("Safari")){
-						Thread.sleep(Integer.parseInt(sResult));
-					}*/
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,Integer.parseInt(sResult));
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-					else{
-						
-						try{					
-							driver.manage().timeouts()
-							.pageLoadTimeout(250, TimeUnit.SECONDS);
-						}catch(TimeoutException te){
-							reportException(sCommand, sTitle);
-						}	
-						catch(Exception e){
-							reportException(sCommand, sTitle);
-						}
-					}					
-					reportStepDetails("Clicking button/link/image:"
-							+ encodedTitle,
-							"Successfully clicked button/link/image:"
-									+ encodedTitle, PASS);
-
-					return PASS;
-				case clickAndWaitForElementPresent:					
-					encodedTitle = encodeSpecialCharacters(sTitle);
-					webElement(sTarget).click();
-					if(sBrowser.contains("Safari")){
-						WebDriverWait safariWait=new WebDriverWait(driver,80);
-						JavascriptExecutor safariWaitJavaScript = (JavascriptExecutor)driver;
-						safariWait.equals(safariWaitJavaScript.executeScript("return document.readyState").equals("complete"));
-					}
-				WebDriverWait wait = new WebDriverWait(driver, 500);
-					try{
-					wait.until(ExpectedConditions.visibilityOfElementLocated(by(sResult)));	
-					}catch(TimeoutException te){
-						reportException(sCommand, te.toString());
-						//reportException(sCommand, sTitle);
-					}	
-					catch(Exception e){
-						reportException(sCommand, sTitle);
-					}
-					reportStepDetails("Clicking button/link/image:"
-							+ encodedTitle,
-							"Successfully clicked button/link/image:"
-									+ encodedTitle, PASS);
-
-					return PASS;
-
-					
-					
-					
-				case sendReportWithOutExit:
-					if (sResult.equalsIgnoreCase(FAIL)) {						
-						reportStepDtlsWithScreenshotWithoutExit(
-								//reportStepDtlsWithScreenshot(
-								encodeSpecialCharacters(" "+sTarget),
-								encodeSpecialCharacters(sTitle), FAIL);
-					} else {
-						reportStepDetails(encodeSpecialCharacters(" "+sTarget),
-								encodeSpecialCharacters(sTitle), PASS);
-					}
-					return sResult;
-					
-					
-				case waitForElementPresent:
-					flag = false;
-					int secsToWait = Integer.parseInt(sTitle);
-
-					for (int second = 0;; second++) {
-						if (second >= secsToWait) {
-							flag = false;
-							break;
-						}
-						if (isElementPresent(sTarget)) {
-							flag = true;
-							break;
-						}
-						Thread.sleep(1000);
-					}
-					if (!flag) {						
-						encodedTitle = encodeSpecialCharacters(sResult);					
-						reportStepDtlsWithScreenshot(
-								"Checking the existence of element:"
-										+ encodedTitle,
-										"Element verification \"" + encodedTitle
-										+ "\" failed", FAIL);
-					}
-					return Boolean.toString(flag);
-					
-				case verifyText:
-					/*sValue = getExcelData(sTitle);
-					sText = webElement(sTarget).getText().trim();*/
-					sText = webElement(sTarget).getText().trim();
-					sTitle = sTitle.trim();
-					encodedTitle = encodeSpecialCharacters(sResult);
-					if (sText.equalsIgnoreCase(sTitle)) {
-						reportStepDetails(" "+"Expected " + encodedTitle + ": "
-								+ encodeSpecialCharacters(sTitle),
-								"Successfully validated " + encodedTitle
-								+ ":  "
-								+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(" "+"Expected " + encodedTitle
-								+ ": " + encodeSpecialCharacters(sTitle),
-								"Displayed " + encodedTitle + ":  "
-										+ encodeSpecialCharacters(sText), FAIL);				
-					}
-					return sText;
-				case assertText:
-
-					sText = webElement(sTarget).getText().trim();
-
-					sTitle = sTitle.trim();
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sResult));
-					encodedTitle = encodeSpecialCharacters(sResult);
-					if (sText.equalsIgnoreCase(sTitle)) {
-						reportStepDetails(" "+"Expected " + encodedTitle + ": "
-								+ encodeSpecialCharacters(sTitle),
-								"Successfully validated " + encodedTitle
-								+ ":  "
-								+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshot(" "+"Expected " + encodedTitle
-								+ ": " + encodeSpecialCharacters(sTitle),
-								"Displayed " + encodedTitle + ":  "
-										+ encodeSpecialCharacters(sText), FAIL);
-						//stopSelenium();
-					}
-
-					return sText;
-				
-				case assertValue:
-					sText = webElement(sTarget).getAttribute("value").trim();
-					sTitle = sTitle.trim();
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sResult));
-					encodedTitle = encodeSpecialCharacters(sResult);
-					if (sText.equalsIgnoreCase(sTitle)) {
-						reportStepDetails("Expected " + encodedTitle + ": "
-								+ encodeSpecialCharacters(sTitle),
-								"Successfully validated " + encodedTitle + ":"
-										+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshot("Expected " + encodedTitle
-								+ ": " + encodeSpecialCharacters(sTitle),
-								"Displayed " + encodedTitle + ":  "
-										+ encodeSpecialCharacters(sText), FAIL);
-					}
-					return sText;
-				case typeSpecifiedText:
-					encodedTitle = encodeSpecialCharacters(sResult);
-					WebElement elmnt = webElement(sTarget);
-					elmnt.clear();
-					//System.out.println("sTitlesTitle"+sTitle);
-					elmnt.sendKeys(sTitle);
-					reportStepDetails("Setting value of " + encodedTitle,
-							encodedTitle + " is set to value: \""
-									+ encodeSpecialCharacters(sTitle) + "\"",
-									PASS);
-					return sTitle;
-				case assertTextPresent:
-					System.out.println("***********assertTextPresent*********");
-					sText = webElement(sTarget).getText().trim();
-					sTitle = sTitle.trim();
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sResult));
-					encodedTitle = encodeSpecialCharacters(sResult);
-					if (sText.equals(sTitle)) {
-						reportStepDetails(" "+"Expected " + encodedTitle + ": "
-								+ encodeSpecialCharacters(sTitle),
-								"Successfully validated " + encodedTitle
-								+ ":  "
-								+ encodeSpecialCharacters(sText), PASS);
-					} else {						
-						reportStepDtlsWithScreenshotWithoutExit(" "+"Expected " + encodedTitle
-								+ ": " + encodeSpecialCharacters(sTitle),
-								"Displayed " + encodedTitle + ":  "
-										+ encodeSpecialCharacters(sText), FAIL);
-						//stopSelenium();
-						//fail(sCommand);
-					}
-					return sText;
-				case assertSubText:
-					sText = webElement(sTarget).getText().trim();
-					//encodedTitle = encodeSpecialCharacters(getExcelData(sResult));
-					encodedTitle = encodeSpecialCharacters(sResult);
-					if (sText.contains(sTitle)) {
-						reportStepDetails("Verifying " + encodedTitle + ":\""
-								+ encodeSpecialCharacters(sTitle) + "\"", "\""
-										+ encodeSpecialCharacters(sTitle)
-										+ "\" text appears in \""
-										+ encodeSpecialCharacters(sText) + "\"", PASS);
-					} else {						
-						reportStepDtlsWithScreenshot("Verifying "
-								+ encodedTitle + ":\""
-								+ encodeSpecialCharacters(sTitle) + "\"", "\""
-										+ encodeSpecialCharacters(sTitle)
-										+ "\" text doesn't appears in \""
-										+ encodeSpecialCharacters(sText) + "\"", FAIL);
-					}
-					return sText;
 				default:
 					reportUnknowSeleniumCmdErr(sCommand);
 				}
 			} else {
-				captureScreenShot();
 				reportElementNotFound(sCommand);
 			}
 
 		} catch (Exception e) {
-
 			e.printStackTrace();
-			//System.out.println("Enter into exception block");
-			captureScreenShot();
-			reportException(sCommand, sTitle);
+			reportException(sCommand, sDescription);
 		}
 		return "";
-	}
-
-	
-	public void method(String command,String locator,String description,String expectedValue){
-		
-		try{
-			switch(command){
-				case "type":
-					getWebElement(locator).sendKeys(expectedValue);
-					stepDetails("Setting the value of "+description,description+" is set to: "+expectedValue,"Pass");
-					break;
-				
-			}
-		}
-		catch(Exception ex){
-			ex.printStackTrace();
-			stepDetailsWithScreenShot("Wait for element present","Element is not found", "Fail");
-		}
 	}
 	
 	public static String getDateTimeDifference(Date startDate, Date endDate)
