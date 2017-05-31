@@ -376,6 +376,12 @@
 						"Title of current page:"
 								+ sText, "Pass");
 				return (sText);
+			case "getPageSource":
+				sText=driver.getPageSource();
+				stepDetails("Retrieving page source",
+						"Page source Retrieved Successfully."
+						, "Pass");
+				return (sText);
 			case "closeBrowser":
 				driver.close();
 				stepDetails("Closing window",
@@ -401,6 +407,21 @@
 				stepDetails("Maximizing window",
 						"Successfully maximized window", "Pass");
 				return "Pass";
+			case "backToWindow":
+				driver.switchTo().defaultContent();
+				stepDetails("Selecting default window",
+						"Default window successfully selected.", "Pass");
+				return "Pass";
+			case "verifyAlertPresent":
+				if(isAlertPresent()){
+					driver.switchTo().alert().accept();
+					stepDetails("verifying alert box","Alert box successfully verified.","Pass");
+					return "true";
+				}
+				else{
+					stepDetails("verifying alert box","No Alert box found at this point","Fail");
+					return "false";
+				}
 			default:
 				reportUnknowSeleniumCmdErr(sCommand);
 			}
@@ -411,19 +432,104 @@
 		}
 		return "";
 	}
+	
+	public boolean isAlertPresent(){
+		try{
+			driver.switchTo().alert();
+			return true;
+		}
+		catch(NoAlertPresentException ex){
+			return false;
+		}
+	}
 
 	public String method(String sCommand, String sLocator) {
 		
 		String sText = "";
 		boolean bFlag = false;
+		boolean checked;
 		try {
 			if(getWebElement(sLocator)!=null) {
 				switch (sCommand) {
 				case "click":	
 					getWebElement(sLocator).click();
-					stepDetails("Clicking button/link/image","Successfully clicked the button/link/image","Pass");
+					stepDetails("Clicking button/link/image","Successfully clicked button/link/image","Pass");
 					return "Pass";
 					
+				case "clickAndWait":
+					getWebElement(sLocator).click();
+					driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS);
+					stepDetails("Clicking on button/link/image","Successfully clicked button/link/image","Pass");
+					return "Pass";
+				case "getText":
+					sText =  getWebElement(sLocator).getText();
+					stepDetails("Retrieving text ",
+							"Successfully Retrieved text: " + sText,"Pass");
+					return sText;	
+				case "isDisplayed":
+					sText="Element is present";
+					 try{
+						  checked = getWebElement(sLocator).isDisplayed();
+					      if (checked) {
+					    	  stepDetails("verifying whether element is present or not","Element is present successfully verified.", "Pass");
+					      }	
+					      else{	
+					    	  sText="Element is not present";
+					    	  stepDetailsWithScreenShot("verifying whether element is present or not",sText,"Pass");
+					      }
+				      
+				     }
+				     catch(Exception e){
+				    	sText="Element is not present";
+				    	stepDetailsWithScreenShot("verifying whether element is present or not",sText,"Fail");
+			            e.printStackTrace();
+				     }				     
+				    return Boolean.toString(checked);
+				case "isSelected":
+					checked = getWebElement(sLocator).isSelected();
+					if (checked)
+						stepDetails("Verifying whether radio button/checkbox is selected or not ",
+								"Radio button/checkbox is selected successfully verified.", "Pass");
+					else
+						stepDetails("Verifying whether radio button/checkbox is selected or not ",
+								"Radio button/checkbox is not selected.", "Pass");
+					return Boolean.toString(checked);	
+				case "isEnabled":
+					checked = getWebElement(sLocator).isEnabled();
+					if (checked)
+						stepDetails("Verifying whether input box/select dropdown is enabled or not ",
+								"input box/select drpdown is enabled successfully verified.", "Pass");
+
+					else
+						stepDetails("Verifying whether input box/select dropdown is enabled or not ",
+								"input box/select is disabled.", "Pass");
+
+					return Boolean.toString(checked);
+				case "openUrl":
+					driver.get(sLocator);
+					stepDetails("Opening URL", "Successfully loaded URL:"
+							+ sLocator, "Pass");
+					return "Pass";
+				case "navigateUrl":
+					driver.navigate().to(sLocator);
+					stepDetails("Navigate to url " + sLocator,
+							"Successfully navigated to url: " + sLocator
+							, "Pass");
+					return "Pass";
+				case "selectFrame":
+					if (sLocator.matches("[0-9]+")) {
+			            int index = Integer.parseInt(sLocator);
+			            driver.switchTo().frame(index);
+			          }
+			          else {
+			            driver.switchTo().frame(sLocator);
+			          }
+			          
+					stepDetails("Selecting Frame", 
+			            "Successfully selecting frame with ID " + 
+			            		sLocator, "Pass");
+			          return "Pass";
+			  
 				case "mouseOver":		
                     Actions actionMouseOver = new Actions(driver);
                     actionMouseOver.moveToElement(getWebElement(sLocator)).build().perform();
@@ -431,24 +537,22 @@
 					stepDetails("MouseOver button/link/image",
 							"Successfully MouseOver the button/link/image", "Pass");
 					return "Pass";
-				case "isChecked":
-					bFlag = getWebElement(sLocator).isSelected();
-					if (bFlag)
-						stepDetails(
-								"Verifying whether checkbox/radio button is checked or not",
-								"Checkbox/radio button is checked", "Pass");
-					else
-						stepDetails(
-								"Verifying whether checkbox/radio button is checked or not",
-								"Checkbox/radio button is not checked", "Pass");
-					return (Boolean.toString(bFlag));
-				case "openUrl":
-					driver.get(sLocator);
-					stepDetails("Opening URL", "Successfully loaded URL:"
-							+ sLocator, "Pass");
-					return "Pass";
-				case "getText":
-					sText = getWebElement(sLocator).getText();
+				case "verifyAlert":
+					if(isAlertPresent()){
+						Alert alert=driver.switchTo().alert();
+						sText=alert.getText();
+						alert.accept();
+						if(sText.equals(sLocator)){
+							stepDetails("Expected alert message: " + 
+						              sLocator, 
+						              "Successfully validated alert message:  " + 
+						              sText, "Pass");						
+							}else{
+								stepDetailsWithScreenShot("Expected alert message: " + sLocator, 
+							              "Displayed alert message: " +  sText, "Fail");						}
+					}else{
+						stepDetails("verifying alert box","No Alert box found at this point","Fail");
+					}
 					return sText;
 				default:
 					reportUnknowSeleniumCmdErr(sCommand);
@@ -464,118 +568,88 @@
 		}
 		return "";
 	}
-
 	
-	private void reportElementNotFound(String sCommand) {
-
-		stepDetailsWithScreenShot("The element of a command " + "\""
-				+ sCommand + "\" not found",
-				"Did not find the field  at step : " + stepCount
-				+ " : on the displayed page", "Fail");
-	}
-	
-	private void reportException(String sCommand, String elementName) {
-
-		System.out.println("**** in reportException ***");
-		stepDetailsWithScreenShot(sCommand, 
-		elementName+" element is not found", "Fail");
-	}
-	
-	private void reportUnknowSeleniumCmdErr(String sCommand) {
-		stepDetailsWithScreenShot("Unknown Selenium/effecta Command " + "\""
-				+ sCommand + "\"", "Please Contact Automtaion team", "Fail");
-	}
-	
-	public String method(String sCommand,String sLocator,String sDescription){
+	public String method(String sCommand,String sLocator,String sDescOrValue){
 		String sText, encodedTitle, sValue = "";
 		int sTargetFlag = 0;
 		boolean checked, flag = false;
-		String value;
 		try{
 			if(getWebElement(sLocator)!=null){
 				switch(sCommand){
 					case "click":
 						getWebElement(sLocator).click();
-						stepDetails("Clicking on button/link/image","Succesfully clicked on "+sDescription,"Pass");
+						stepDetails("Clicking on button/link/image","Succesfully clicked on "+sDescOrValue,"Pass");
 						return "Pass";
 					case "clickAndWait":
 						getWebElement(sLocator).click();
 						driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS);
-						stepDetails("Clicking on button/link/image","Succesfully clicked on "+sDescription,"Pass");
+						stepDetails("Clicking on button/link/image","Succesfully clicked on "+sDescOrValue,"Pass");
 						return "Pass";
-					case "waitForElementPresent":
-						wait=new WebDriverWait(driver,Long.parseLong(sDescription));
-						wait.until(ExpectedConditions.visibilityOfElementLocated(getByLocator(sLocator)));
-						stepDetails("Wait for element present","Expected element is found.","Pass");
-						break;
+					case "getText":
+						sText =  getWebElement(sLocator).getText();
+						stepDetails("Retrieving " + sDescOrValue,
+								"Retrieved " + sDescOrValue + ":"
+										+ sText, "Pass");
+						return sText;
 					case "isDisplayed":
-						value="Element is present";
+						sValue="Element is present";
 						 try{				    	
 						      if (getWebElement(sLocator).isDisplayed()) {
-						    	  stepDetails("Validated Element :" + sDescription,	value, "Pass");
+						    	  stepDetails("verifying whether Element: " + sDescOrValue+"is displayed or not",sValue, "Pass");
 						      }	
 						      else{	
-						    	  value="Element is not present";
-						    	  stepDetailsWithScreenShot("Validated Element: "+ sDescription, value,"Fail");
+						    	  sValue="Element is not present";
+						    	  stepDetails("verifying whether Element: " + sDescOrValue+"is displayed or not",sValue,"Pass");
 						      }
 					      
 					     }
 					     catch(Exception e){
-					    	 value="Element is not present";
-					    	stepDetailsWithScreenShot("Validated Element: "+ sDescription, value,"Fail");
+					    	sValue="Element is not present";
+					    	stepDetailsWithScreenShot("verifying whether Element: " + sDescOrValue+"is displayed or not", sValue,"Fail");
 				            e.printStackTrace();
 					     }				     
-					    return value;
+					    return sValue;
 					case "isSelected":
-						//boolean checked = false;
 						checked = getWebElement(sLocator).isSelected();
 						if (checked)
-							stepDetails("Verifying whether \"" + sDescription
-									+ "\" is selected or not", "\"" + sDescription
+							stepDetails("Verifying whether \"" + sDescOrValue
+									+ "\" is selected or not", "\"" + sDescOrValue
 									+ "\" is selected", "Pass");
 
 						else
-							stepDetails("Verifying whether \"" + sDescription
-									+ "\" is selected or not", "\"" + sDescription
+							stepDetails("Verifying whether \"" + sDescOrValue
+									+ "\" is selected or not", "\"" + sDescOrValue
 									+ "\" is not selected", "Pass");
-						return Boolean.toString(checked);
-						
+						return Boolean.toString(checked);	
 					case "isEnabled":
 						boolean enabled = false;
 						checked = getWebElement(sLocator).isEnabled();
 						if (checked)
-							stepDetails("Verifying whether \"" + sDescription
-									+ "\" is enabled or not", "\"" + sDescription
+							stepDetails("Verifying whether \"" + sDescOrValue
+									+ "\" is enabled or not", "\"" + sDescOrValue
 									+ "\" is enabled", "Pass");
 
 						else
-							stepDetails("Verifying whether \"" + sDescription
-									+ "\" is enabled or not", "\"" + sDescription
+							stepDetails("Verifying whether \"" + sDescOrValue
+									+ "\" is enabled or not", "\"" + sDescOrValue
 									+ "\" is not enabled", "Pass");
 						return Boolean.toString(checked);
-					case "getText":
-						
-						sText =  getWebElement(sLocator).getText();
-						stepDetails("Retrieving " + sDescription,
-								"Retrieved " + sDescription + ":"
-										+ sText, "Pass");
-						return sText;
+					case "type":
+						sValue = sDescOrValue;
+						WebElement elmnt = getWebElement(sLocator);
+						elmnt.clear();
+						elmnt.sendKeys(sValue);
+						stepDetails("Setting value of text box ",
+								       "text box is set to value: \""
+										+ sValue,
+										"Pass");
+						return sValue;
 					case "openWindow":
 						driver.navigate().to(sLocator);
 						stepDetails("Opening popup window " + sDescription,
 								"Successfully opened " + sDescription
 								+ " popup window", "Pass");
 						return "Pass";
-					case "type":
-						sValue = sDescription;
-						WebElement elmnt = getWebElement(sLocator);
-						elmnt.clear();
-						elmnt.sendKeys(sValue);
-						stepDetails("Setting value of " + sDescription,
-								sDescription + " is set to value: \""
-										+ sValue + "\"",
-										"Pass");
-						return sValue;
 					default:
 						reportUnknowSeleniumCmdErr(sCommand);
 					}
@@ -595,8 +669,7 @@
 		return "";
 	}
 	
-	public String effecta(String sCommand, String sLocator, String sValue,
-			String sDescription) {
+	public String method(String sCommand, String sLocator, String sValue,String sDescription) {
 		String sText = "";
 		String encodedTitle = "";
 		int sTargetFlag = 0;
@@ -626,6 +699,28 @@
 			reportException(sCommand, sDescription);
 		}
 		return "";
+	}
+
+
+	
+	private void reportElementNotFound(String sCommand) {
+
+		stepDetailsWithScreenShot("The element of a command " + "\""
+				+ sCommand + "\" not found",
+				"Did not find the field  at step : " + stepCount
+				+ " : on the displayed page", "Fail");
+	}
+	
+	private void reportException(String sCommand, String elementName) {
+
+		System.out.println("**** in reportException ***");
+		stepDetailsWithScreenShot(sCommand, 
+		elementName+" element is not found", "Fail");
+	}
+	
+	private void reportUnknowSeleniumCmdErr(String sCommand) {
+		stepDetailsWithScreenShot("Unknown Selenium/effecta Command " + "\""
+				+ sCommand + "\"", "Please Contact Automtaion team", "Fail");
 	}
 	
 	public static String getDateTimeDifference(Date startDate, Date endDate)
