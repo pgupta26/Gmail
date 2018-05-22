@@ -1,0 +1,53 @@
+Client client = Client.create();
+		client.addFilter(new com.sun.jersey.api.client.filter.HTTPBasicAuthFilter("admin", "admin123"));
+		WebResource webResource = client.resource("http://10.74.230.170:8080/job/Test/lastBuild/api/json?tree=number");
+		ClientResponse response = webResource.post(ClientResponse.class);
+
+		System.out.println(response.getStatus());
+
+		String jsonResponse = response.getEntity(String.class);
+		System.out.println(jsonResponse);
+		client.destroy();
+
+		ArrayList<ArrayList<String>> records=new ArrayList<ArrayList<String>>();
+		ArrayList<String> record;
+
+		try {
+	            Reader firstFile = Files.newBufferedReader(Paths.get("C:\\Users\\e5399484\\Desktop\\Jmeter csv files\\Test.csv"));
+	            CSVParser firstFileParser = new CSVParser(firstFile, CSVFormat.DEFAULT);
+	            List<CSVRecord> firstFileRecords = firstFileParser.getRecords();
+
+	            Reader secondFile = Files.newBufferedReader(Paths.get("C:\\Users\\e5399484\\Desktop\\Jmeter csv files\\Test1.csv"));
+	            CSVParser secondFileParser = new CSVParser(secondFile, CSVFormat.DEFAULT);
+	            List<CSVRecord> secondFileRecords = secondFileParser.getRecords();
+
+	            for(int i=1;i<firstFileRecords.size();i++){
+
+	            	record=new ArrayList<String>();
+
+	            	CSVRecord firstFileRow = firstFileRecords.get(i);
+	            	CSVRecord secondFieRow = secondFileRecords.get(i);
+
+	            	String transactionName=firstFileRow.get(2);
+	            	String firstElapsed = firstFileRow.get(1);
+	            	String secondElapsed=secondFieRow.get(1);
+
+	            	record.add(transactionName);
+	            	record.add(firstElapsed);
+	            	record.add(secondElapsed);
+	            	records.add(record);
+	            }
+
+	           firstFileParser.close();
+	           secondFileParser.close();
+
+	           for(ArrayList<String> record1:records){
+	        	   for(String record2:record1){
+	        		   System.out.println(record2);
+	        	   }
+	           }
+
+
+	        }catch(Exception ex){
+	        	ex.printStackTrace();
+	        }
