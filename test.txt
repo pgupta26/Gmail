@@ -1,0 +1,111 @@
+package com;
+
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+
+public class TestCSV {
+
+	public static LinkedHashSet <String> getAllTransactionNames(String csvFileName){
+
+		LinkedHashSet <String> transactionNames = null;
+
+		try{
+			transactionNames=new LinkedHashSet <String>();
+
+			Reader firstFile = Files.newBufferedReader(Paths.get(csvFileName));
+			CSVParser firstFileParser = new CSVParser(firstFile, CSVFormat.DEFAULT);
+			List<CSVRecord> firstFileRecords = firstFileParser.getRecords();
+
+			for(int i=1;i<firstFileRecords.size();i++){
+
+				CSVRecord firstFileRow = firstFileRecords.get(i);
+
+				transactionNames.add(firstFileRow.get(2));
+
+			}
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+		return transactionNames;
+	}
+
+	public static void main(String[] args) {
+
+		ArrayList<ArrayList<Integer>> records=new ArrayList<ArrayList<Integer>>();
+		ArrayList<Integer> record;
+
+		try{
+
+			String csvFileName="C:\\Users\\e5399484\\Desktop\\Jmeter csv files\\Results_4.csv";
+			LinkedHashSet <String> transactionNames=getAllTransactionNames(csvFileName);
+
+			Reader firstFile = Files.newBufferedReader(Paths.get("C:\\Users\\e5399484\\Desktop\\Jmeter csv files\\Results_4.csv"));
+			CSVParser firstFileParser = new CSVParser(firstFile, CSVFormat.DEFAULT);
+			List<CSVRecord> firstFileRecords = firstFileParser.getRecords();
+
+			Reader secondFile = Files.newBufferedReader(Paths.get("C:\\Users\\e5399484\\Desktop\\Jmeter csv files\\Results_5.csv"));
+			CSVParser secondFileParser = new CSVParser(secondFile, CSVFormat.DEFAULT);
+			List<CSVRecord> secondFileRecords = secondFileParser.getRecords();
+			
+			int firstFileSampleCount=0;
+			int firstFileResponseTime=0;
+			
+			int secondFileSampleCount=0;
+			int secondFileResponseTime=0;
+			
+			for(String transactionName:transactionNames){
+				record=new ArrayList<Integer>();
+				for(int i=1;i<firstFileRecords.size();i++){
+
+					CSVRecord firstFileRow = firstFileRecords.get(i);
+					
+					if(firstFileRow.get(2).equals(transactionName)){
+						firstFileSampleCount=firstFileSampleCount+1;
+						firstFileResponseTime =firstFileResponseTime+ Integer.parseInt(firstFileRow.get(1));
+					}
+				}
+				
+				for(int i=1;i<secondFileRecords.size();i++){
+
+					CSVRecord secondFieRow = secondFileRecords.get(i);
+					
+					if(secondFieRow.get(2).equals(transactionName)){
+						secondFileSampleCount=secondFileSampleCount+1;
+						secondFileResponseTime =secondFileResponseTime+ Integer.parseInt(secondFieRow.get(1));
+					}
+				}
+				
+				String transactionName1=transactionName.replaceAll("_"," ");
+				record.add(Integer.parseInt(transactionName1));
+				record.add(firstFileSampleCount);
+				record.add(firstFileResponseTime);
+				
+				record.add(secondFileSampleCount);
+				record.add(secondFileResponseTime);
+				records.add(record);
+			}
+
+			firstFileParser.close();
+			secondFileParser.close();
+
+			for(ArrayList<Integer> record1:records){
+				for(Integer record2:record1){
+					System.out.println(record2);
+				}
+			}
+
+
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+	}
+}
