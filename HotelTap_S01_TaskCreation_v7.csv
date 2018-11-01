@@ -6,3 +6,5 @@ timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success
 1529350619436,6002,HotelTap_S01_TaskCreation_T03_Fill Details_Click Post,200,"Number of samples in transaction : 7, number of failing samples : 0",HotelTap_S01_TaskCreation 1-1,,true,,7351,4517,2,2,0,1006,0
 1529350625771,4970,HotelTap_S01_TaskCreation_T03_Fill Details_Click Post,200,,HotelTap_S01_TaskCreation 1-2,,true,,3614,3313,2,2,0,0,0
 1529350626444,4729,HotelTap_S01_TaskCreation_T04_Logout,200,,HotelTap_S01_TaskCreation 1-1,,true,,5474,2893,1,1,0,0,0
+
+https://www.coursera.org/learn/machine-learning/lecture/dpF1j/matrix-matrix-multiplication
