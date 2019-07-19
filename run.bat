@@ -1,0 +1,1 @@
+java -cp "C:\Parshant\Selenium Projects\JarTest\bin;C:\Laptop Data\E Drive\Selenium_Projects\Resoures\*" org.testng.TestNG testng.xml
