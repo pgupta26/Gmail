@@ -1,0 +1,37 @@
+FCBT Billing Report -
+1. Total records count not matching because on production filters are not working.
+
+Job Id - FCBTSTM6060119073942
+
+2. Record count mismatch
+3. Seconds are missing in process date
+4. Column 'Mail Prep Total Cost' value is wrong.
+
+Job Id - FCBTLSTM042319192604
+
+5. BRE Custom Count value is missin in uAT.
+6. Total Insert Cost
+7. BRE Custom Cost 
+8. Column 'Mail Prep Total Cost' value is wrong.
+
+BankWay Billing - 90 - Working Fine (Data not validated)
+
+UHG Welcome Kits Billing - 91 - Working Fine (Data not validated)
+
+UHG eWelcome Kits Billing - 92 - Working Fine (Data not validated)
+
+Entergy Billing Postage - 93 - Working Fine (Data not validated)
+
+Entergy Billing Summary- 94 - Working Fine (Data not validated)
+
+NWPC -> Weekly Usage - 95 - Working Fine (Data not validated)
+
+
+
+
+
+
+
+Predential Billing Maturity Postage - 80 - This report is pending
+
+
