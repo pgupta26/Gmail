@@ -40,6 +40,6 @@ Prudentail Weekly Usage - 95
 E:\FOS_QA\FOSRewriteApps\Consoles\QA_ADF_Rewrite_ConsoleApp_v1.1_04222019\PCLRprint
 
 
-
+E:\FOS_QA\FOSRewriteApps\Consoles\QA_ADF_Rewrite_ConsoleApp_v1.1_04222019\PCLRprint\PCLRprint.exe "E:\\adfftp\\Triggers|e:\\adfftp\\IndexFiles|e:\\adfftp\\Reprint|e:\\adfftp\\Reprints|MPCL"
 
 
