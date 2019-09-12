@@ -42,4 +42,7 @@ E:\FOS_QA\FOSRewriteApps\Consoles\QA_ADF_Rewrite_ConsoleApp_v1.1_04222019\PCLRpr
 
 E:\FOS_QA\FOSRewriteApps\Consoles\QA_ADF_Rewrite_ConsoleApp_v1.1_04222019\PCLRprint\PCLRprint.exe "E:\\adfftp\\Triggers|e:\\adfftp\\IndexFiles|e:\\adfftp\\Reprint|e:\\adfftp\\Reprints|MPCL"
 
+SELECT   EntityProfile.EntityID FROM   EntityProfile INNER JOIN JobPrefixProfile ON EntityProfile.EntityNumber = JobPrefixProfile.EntityNumber where JobPrefix like '%s%s%s%s'"
+[VARIABLE_JobPrefix_First_Char] AND [VARIABLE_JobPrefix] AND [VARIABLE_WEALTH_BANK_INDICATOR] AND [VARIABLE_BANK_NUMBER2]
+
 
