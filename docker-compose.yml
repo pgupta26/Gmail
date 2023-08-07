@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  orchestration:
+    image: mysql:5.7
+    restart: always
+    ports:
+    - 33060:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: orchestration_new
+      MYSQL_USER: adidas
+      MYSQL_PASSWORD: ad1d@s
+    command: mysqld --sql_mode=""
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+
+  mysql_promo_budget:
+    image: mysql:latest
+    restart: always
+    ports:
+      - 43060:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: promobudget
+      MYSQL_USER: adidas
+      MYSQL_PASSWORD: ad1d@s
+    command: mysqld --sql_mode=""
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "36379:6379"
+    volumes:
+      - /data
+    command: redis-server --bind 0.0.0.0
